@@ -89,7 +89,7 @@ def apply():
             print(ori)
             print(target)
             # make dir if not exist
-            dir_ = os.path.split(target)[0]
+            dir_ = _getdir(target)
             if not isdir(dir_):
                 os.makedirs(dir_)
             # backup the file if already exist
@@ -106,6 +106,12 @@ def select():
             f.write(_prefixtopic(sys.argv[2]))
             f.flush()
 
+def _getdir(fullname):
+    return os.path.split(fullname)[0]
+
+def _getshortname(fullname):
+    return os.path.split(fullname)[1]
+
 def add():
     """Add file(s) into the buffer."""
     if len(sys.argv) == 2:
@@ -114,7 +120,7 @@ def add():
         from shutil import copy
         for f in sys.argv[2:]:
             # remove root slash
-            dir_ = join('BUFFER', _rmrootslash(f))
+            dir_ = _getdir(join('BUFFER', _rmrootslash(f)))
             if not isdir(dir_):
                 os.makedirs(dir_)
             copy(sys.argv[2], join(dir_))
