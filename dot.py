@@ -20,6 +20,12 @@ options:
     list [topic]:	List .files under this topic
     apply [topic]:	Apply a topic
 
+operation flow:
+    to back up:
+    [select] -> [add] -> ... -> [add] -> [commit] -> [apply]
+    to restore:
+    [apply]"
+
 HINT:
     These files are temporary. Instead of tracking them in your repo, add them in `.gitignore`:
     /BUFFER/
@@ -85,12 +91,22 @@ def select():
             f.flush()
 
 def add():
-    """Add a file into the buffer."""
-    pass
+    """Add file(s) into the buffer."""
+    if len(sys.argv) == 2:
+        print('Nothing specified, nothing added.')
+    else:
+        from shutil import copy
+        for f in sys.argv[2:]:
+            # remove root slash
+            dir = os.path.join('BUFFER', f[1:])
+            if not os.path.isdir(dir):
+                os.makedirs(dir)
+            copy(sys.argv[2], os.path.join(dir))
 
 def status():
     if os.path.isfile('SELECTEDTOPIC'):
         print('Selected topic:')
+        print('  (use `{} select` to unselect)'.format(sys.argv[0]))
         with open('SELECTEDTOPIC', 'r') as f:
             print(f.read())
     else:
@@ -102,11 +118,26 @@ def status():
     else:
         print('Nothing in the buffer.')
 
+def _topicfy():
+    with open('SELECTEDTOPIC', 'r') as selected:
+        topicname = selected.read()
+        # shutil.move is easy to use!
+        from shutil import move
+        move('BUFFER', topicname)
+    os.remove('SELECTEDTOPIC')
+
 def commit():
     """Commit the files in the buffer to the selected topic.
     Create one if not exist.
     """
-    pass
+    if not (os.path.isdir('BUFFER') and len(_getfiles('BUFFER')) != 0):
+        print('Fatal: no file staged in the buffer')
+        print('  (use `{} add <file_path>` to stage a file)'.format(sys.argv[0]))
+    elif not os.path.isfile('SELECTEDTOPIC'):
+        print('Fatal: no topic selected')
+        print('  (use `{} select <topic>` to select a topic)'.format(sys.argv[0]))
+    else:
+        _topicfy()
 
 
 
@@ -117,9 +148,14 @@ if __name__ == '__main__':
         help_()
     else:
         {'help': help_,
+
          'list': list_,
          'ls': list_,
          'apply': apply,
+
          'select': select,
+         'add': add,
          'status': status,
-         'st': status}[sys.argv[1]]()
+         'st': status,
+         'commit': commit,
+         'ci': commit}[sys.argv[1]]()
