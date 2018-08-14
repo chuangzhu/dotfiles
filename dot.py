@@ -11,25 +11,31 @@ def help_():
     Naive dotfiles management util by geneLocated
 
 usage:
-    `make [option] topic=[topic]` or
-    `python {filename} [options] [topic]`
+    `make <command> [args=<args>]` or
+    `python {fn} <command> <args>`
 
-options:
+commands:
     help:		Display this message
     list:		List exist topics
-    list [topic]:	List .files under this topic
-    apply [topic]:	Apply a topic
+    list <topic>:	List .files under this topic
+    apply <topic>:	Apply a topic of .files (by making soft links in some directory)
+
+    add <file> ...:	Stage files you want to backup to a temporary buffer
+    status:		Display files you staged and the topic you are going to commit to
+    select <topic>:	Select the topic you would like to commit to
+    select:		Cancel selecting topic
+    commit:		 Store buffer data to a topic you `select`, you may want to run `{fn} apply <topic>` to make links in your directories
 
 operation flow:
-    to back up:
-    [select] -> [add] -> ... -> [add] -> [commit] -> [apply]
+    to backup:
+        [{fn} select] -> [{fn} add] -> ... -> [{fn} add] -> [{fn} commit] -> [{fn} apply] -> [git add .] -> [git commit]
     to restore:
-    [apply]"
+        [{fn} apply]
 
 HINT:
-    These files are temporary. Instead of tracking them in your repo, add them in `.gitignore`:
+    These files and dirctories are temporary. Instead of tracking them in your repo, add them in `.gitignore`:
     /BUFFER/
-    /SELECTEDTOPIC""".format(filename=sys.argv[0])
+    /SELECTEDTOPIC""".format(fn=sys.argv[0])
     )
 
 def list_():
@@ -132,7 +138,7 @@ def commit():
     """
     if not (os.path.isdir('BUFFER') and len(_getfiles('BUFFER')) != 0):
         print('Fatal: no file staged in the buffer')
-        print('  (use `{} add <file_path>` to stage a file)'.format(sys.argv[0]))
+        print('  (use `{} add <file> ...` to stage files)'.format(sys.argv[0]))
     elif not os.path.isfile('SELECTEDTOPIC'):
         print('Fatal: no topic selected')
         print('  (use `{} select <topic>` to select a topic)'.format(sys.argv[0]))
