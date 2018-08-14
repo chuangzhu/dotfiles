@@ -1,14 +1,14 @@
-RUN_ARGS := $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
-$(eval $(RUN_ARGS):;@:)
 
-.PHONY: help list apply
+.PHONY: help list ls apply
 
 help:
-	@python ./dot.py help $(RUN_ARGS)
+	@python ./dot.py help
 
 list:
-	@python ./dot.py list $(RUN_ARGS)
+	@python ./dot.py list $(topic)	
+
+ls: list
 
 apply:
-	@python ./dot.py apply $(RUN_ARGS)
+	@python ./dot.py apply $(topic)
 

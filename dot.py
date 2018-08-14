@@ -1,49 +1,66 @@
 #!/usr/bin/python
+# -*- coding:utf-8 -*-
 
 from __future__ import print_function
+from __future__ import unicode_literals
 import os, sys
 
 def help():
     print(
 '''DOT:
-    A dotfiles management util by geneLocated
+    A naive dotfiles management util by geneLocated
 
 usage:
-    `make [option] [topic]` or
-    `python ./dot.py [options] [topic]`
+    `make [option] topic=[topic]` or
+    `python {filename} [options] [topic]`
 
 options:
     help:		Display this message
     list:		List exist topics
     list [topic]:	List .files under this topic
-    apply [topic]:	Apply a topic'''
+    apply [topic]:	Apply a topic'''.format(filename=sys.argv[0])
         )
 
-def list():
+def ls():
     if len(sys.argv) < 3:
         # list topics in this repo
-        print()
+        print(_gettopic())
     else:
         # list dotfiles under a topic
-        print()
-        mypath = os.getcwd()
-        file_and_dir = os.listdir(mypath)
-        fileonly = [f for f in file_and_dir \
-                    if os.path.isdir(os.path.join(mypath, f)]
+        print(_getfiles(sys.argv[2]))
+        
+
+def _gettopic():
+    file_and_dir = os.listdir('.')
+    dironly = [i for i in file_and_dir \
+        if os.path.isdir(os.path.join('.', i))]
+    topics = [i[6:] for i in dironly if i.find('topic.') == 0]
+    return topics
+
+def _getfiles(topic):
+    dirs = os.walk(os.path.join('.', topic))
+    # os.walk returns a list of tuples,
+    # every tuple is (root: str, dirs: list, files: list)
+    # files = [f for i in dirs for f in i[2]]
+    files = [os.path.join(i[0], f) for i in dirs for f in i[2]]
+    return files
 
 def apply():
     if len(sys.argv) < 3:
         print('Missing topics, operation failed.')
     else:
-        print()
+        for i in _getfiles(sys.argv[2]):
+            os.system('ln -s {}'.format(i))
 
 
 
 if __name__ == '__main__':
+    # print(sys.argv)
     # display help if no args provided
     if len(sys.argv) < 2:
         help()
     else:
         {'help': help,
-         'list': list,
+         'list': ls,
+         'ls': ls,
          'apply': apply}[sys.argv[1]]()
