@@ -1,1 +1,6 @@
 .directory
+.*.swp
+.*.kate-swp
+.vscode/
+/BUFFER/
+/SELECTEDTOPIC
