@@ -8,9 +8,8 @@
 
 ## Auto apply tool
 
-- [ ] Makefile
-  - [ ] make list
-  - [ ] make list [topic]
-  - [ ] make add
-  - [ ] make link
-  - [ ] make apply [topic]
+- [x] Makefile
+  - [x] make list
+  - [x] make list [topic]
+  - [x] make add
+  - [x] make apply [topic]
