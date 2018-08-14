@@ -18,8 +18,13 @@ options:
     help:		Display this message
     list:		List exist topics
     list [topic]:	List .files under this topic
-    apply [topic]:	Apply a topic""".format(filename=sys.argv[0])
-        )
+    apply [topic]:	Apply a topic
+
+HINT:
+    These files are temporary. Instead of tracking them in your repo, add them in `.gitignore`:
+    /BUFFER/
+    /SELECTEDTOPIC""".format(filename=sys.argv[0])
+    )
 
 def list_():
     if len(sys.argv) < 3:
@@ -30,7 +35,7 @@ def list_():
         print(_getfiles(_prefixtopic(sys.argv[2])))
 
 def _prefixtopic(topic):
-    """prefix with 'topic.' if not given"""
+    """Prefix with 'topic.' if not given"""
     return topic if topic.find('topic.') != -1 \
         else 'topic.' + topic
 
@@ -52,6 +57,7 @@ def _getfiles(topic):
     return files
 
 def apply():
+    """Apply a topic."""
     if len(sys.argv) < 3:
         print('Missing topic, operation failed.')
     else:
@@ -69,6 +75,39 @@ def apply():
                 os.rename(target, target + '.BAK')
             os.system('ln -s {ori} {tar}'.format(ori=ori, tar=target))
 
+def select():
+    """Select a topic to commit."""
+    if len(sys.argv) == 2 and os.path.isfile('SELECTEDTOPIC'):
+        os.remove('SELECTEDTOPIC')
+    elif len(sys.argv) == 3:
+        with open('SELECTEDTOPIC', 'w') as f:
+            f.write(_prefixtopic(sys.argv[2]))
+            f.flush()
+
+def add():
+    """Add a file into the buffer."""
+    pass
+
+def status():
+    if os.path.isfile('SELECTEDTOPIC'):
+        print('Selected topic:')
+        with open('SELECTEDTOPIC', 'r') as f:
+            print(f.read())
+    else:
+        print('No topic selected.')
+    print()
+    if os.path.isdir('BUFFER') and len(_getfiles('BUFFER')) != 0:
+            print('Files staged in the buffer:')
+            print(_getfiles('BUFFER'))
+    else:
+        print('Nothing in the buffer.')
+
+def commit():
+    """Commit the files in the buffer to the selected topic.
+    Create one if not exist.
+    """
+    pass
+
 
 
 if __name__ == '__main__':
@@ -80,4 +119,7 @@ if __name__ == '__main__':
         {'help': help_,
          'list': list_,
          'ls': list_,
-         'apply': apply}[sys.argv[1]]()
+         'apply': apply,
+         'select': select,
+         'status': status,
+         'st': status}[sys.argv[1]]()
