@@ -56,10 +56,18 @@ def apply():
         print('Missing topic, operation failed.')
     else:
         topic = _prefixtopic(sys.argv[2])
-        for i in _getfiles(topic):
-            ori = os.path.join('.', topic, i)
+        for target in _getfiles(topic):
+            ori = os.path.join(os.getcwd(), topic, target[1:])
             print(ori)
-            # os.system('ln -s {ori} {tar}'.format(ori=ori, tar=i))
+            print(target)
+            # make dir if not exist
+            dir = os.path.split(target)[0]
+            if not os.path.isdir(dir):
+                os.makedirs(dir)
+            # backup the file if already exist
+            if os.path.isfile(target):
+                os.rename(target, target + '.BAK')
+            os.system('ln -s {ori} {tar}'.format(ori=ori, tar=target))
 
 
 
