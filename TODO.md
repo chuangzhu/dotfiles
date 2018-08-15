@@ -2,8 +2,8 @@
 
 ## .files
 
-- [ ] libinput gestures
-- [ ] KDE configures
+- [x] libinput gestures
+- [x] KDE configures
 - [ ] Adblock filter
 
 ## Auto apply tool
