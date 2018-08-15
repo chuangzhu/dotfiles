@@ -1,3 +1,7 @@
+[Adblock Plus 2.0]
+! Homepage: https://github.com/genelocated/dotfiles
+! Title: List by geneLocated
+
 ！ 知乎
 zhihu.com##.AdblockBanner
 zhihu.com##img[alt='广告']
