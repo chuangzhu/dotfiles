@@ -93,8 +93,10 @@ def apply():
             if not isdir(dir_):
                 os.makedirs(dir_)
             # backup the file if already exist
-            if isfile(target):
+            if isfile(target) and not isfile(target + '.BAK'):
                 os.rename(target, target + '.BAK')
+            elif isfile(target):
+                os.remove(target)
             os.system('ln -s {ori} {tar}'.format(ori=ori, tar=target))
 
 def select():
