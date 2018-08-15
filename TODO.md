@@ -4,7 +4,7 @@
 
 - [x] libinput gestures
 - [x] KDE configures
-- [ ] Adblock filter
+- [x] Adblock filter
 
 ## Auto apply tool
 

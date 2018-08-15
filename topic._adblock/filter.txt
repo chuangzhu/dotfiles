@@ -1,0 +1,44 @@
+！ 知乎
+zhihu.com##.AdblockBanner
+zhihu.com##img[alt='广告']
+
+！ CSDN
+blog.csdn.net##.csdn-tracking-statistics.mb8.box-shadow
+blog.csdn.net##.pulllog-box
+blog.csdn.net##.box-box-large
+blog.csdn.net##newsfeed
+csdn.net##div#_360_interactive
+
+！ 微软 Try Edge
+onenote.com###msccBanner
+onenote.com##.cc-banner
+
+! 百度
+zhidao.baidu.com##.cms-slide.cms-slide-lazy.mod-noshadow
+zhidao.baidu.com##.ec-ad
+zhidao.baidu.com##.wgt-push
+pos.baidu.com
+zhidao.baidu.com##.ask-help-layout
+zhidao.baidu.com##.wgt-bottom-union.mod-shadow.last.line
+
+！ QQ 空间
+user.qzone.qq.com##.ck-act
+qzone.qq.com###gdtLifeImg
+qzone.qq.com###QM_Container_100005
+qzone.qq.com###QM_Container_100006
+qzone.qq.com##.mod-tuwen
+user.qzone.qq.com##li.f-single.f-s-s.f-single-biz
+||pgdt.gtimg.cn/gdt/0
+||qzonestyle.gtimg.cn/qzone/space_item/boss_pic/*
+
+
+! StackOverflow 加速页面加载
+ajax.googleapis.com
+
+! 奇虎 360
+s.union.360.cn/230363.js
+qhimg.com
+qhres.com
+
+！ 中国移动网页出错跳转页面
+||express.hivedata.com.cn/navi/news/homePage
