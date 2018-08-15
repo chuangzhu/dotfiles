@@ -20,6 +20,7 @@ commands:
     list:		List exist topics
     list <topic>:	List .files under this topic
     apply <topic>:	Apply a topic of .files (by making soft links in some directory)
+    recover <topic>:	Stop manage a topic of .files, and try to restore
 
     add <file> ...:	Stage files you want to backup to a temporary buffer
     status:		Display files you staged and the topic you are going to commit to
@@ -28,9 +29,9 @@ commands:
     commit:		 Store buffer data to a topic you `select`, you may want to run `{fn} apply <topic>` to make links in your directories
 
 operation flow:
-    to backup:
+    to get files into fresh management:
         [{fn} select] -> [{fn} add] -> ... -> [{fn} add] -> [{fn} commit] -> [{fn} apply] -> [git add .] -> [git commit]
-    to restore:
+    to continue managing on maybe some other device:
         [{fn} apply]
 
 HINT:
@@ -93,9 +94,20 @@ def apply():
             if not isdir(dir_):
                 os.makedirs(dir_)
             # backup the file if already exist
-            if isfile(target):
+            if isfile(target) and not isfile(target + '.BAK'):
                 os.rename(target, target + '.BAK')
+            elif isfile(target):
+                os.remove(target)
             os.system('ln -s {ori} {tar}'.format(ori=ori, tar=target))
+
+def recover():
+    """Remove the link file, and recover from the .BAK file"""
+    topic = _prefixtopic(sys.argv[2])
+    for f in _getfiles(topic):
+        if isfile(f):
+            os.remove(f)
+        if isfile(f + '.BAK'):
+            os.rename(f + '.BAK', f)
 
 def select():
     """Select a topic to commit."""
@@ -174,6 +186,7 @@ if __name__ == '__main__':
          'list': list_,
          'ls': list_,
          'apply': apply,
+         'recover': recover,
 
          'select': select,
          'add': add,

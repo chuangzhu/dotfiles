@@ -12,6 +12,9 @@ ls: list
 apply:
 	@python ./dot.py apply $(topic)
 
+recover:
+	@python ./dot.py recover $(topic)
+
 select:
 	@python ./dot.py select $(topic)
 
