@@ -37,8 +37,10 @@ HINT:
     /BUFFER/
     /SELECTEDTOPIC""".format(fn=sys.argv[0])
 
+
 def help_():
     print(help_text)
+
 
 def list_():
     if len(sys.argv) < 3:
@@ -47,6 +49,7 @@ def list_():
     else:
         # list dotfiles under a topic
         print(_getfiles(_prefixtopic(sys.argv[2])))
+
 
 def _rmrootslash(dir_):
     """It is impossible to join '/opt/someplace' and '/home/user/' together
@@ -57,17 +60,20 @@ def _rmrootslash(dir_):
     else:
         raise ValueError('do not contain root slash')
 
+
 def _prefixtopic(topic):
     """Prefix with 'topic.' if not given"""
     return topic if topic.find('topic.') != -1 \
         else 'topic.' + topic
 
+
 def _gettopic():
     file_and_dir = os.listdir('.')
-    dironly = [i for i in file_and_dir \
-        if isdir(join('.', i))]
+    dironly = [i for i in file_and_dir
+               if isdir(join('.', i))]
     topics = [i[len('topic.'):] for i in dironly if i.find('topic.') == 0]
     return topics
+
 
 def _getfiles(topic):
     os.chdir(join('.', topic))
@@ -78,6 +84,7 @@ def _getfiles(topic):
     files = [join(i[0], f)[1:] for i in dirs for f in i[2]]
     os.chdir('..')
     return files
+
 
 def apply():
     """Apply a topic."""
@@ -100,6 +107,7 @@ def apply():
                 os.remove(target)
             os.system('ln -s {ori} {tar}'.format(ori=ori, tar=target))
 
+
 def recover():
     """Remove the link file, and recover from the .BAK file"""
     topic = _prefixtopic(sys.argv[2])
@@ -108,6 +116,7 @@ def recover():
             os.remove(f)
         if isfile(f + '.BAK'):
             os.rename(f + '.BAK', f)
+
 
 def select():
     """Select a topic to commit."""
@@ -118,33 +127,37 @@ def select():
             f.write(_prefixtopic(sys.argv[2]))
             f.flush()
 
+
 def _getdir(fullname):
     """Get dir of a file"""
     return os.path.split(fullname)[0]
+
 
 def _getshortname(fullname):
     """Get short name of a file"""
     return os.path.split(fullname)[1]
 
+
 def env_add(string):
     from shutil import copy
     import re
     found = re.findall('{.*?}', string)
-    fn_value = string # /home/user/.vimrc like
-    fn_var = string # ${HOME}/.vimrc like
+    fn_value = string  # /home/user/.vimrc like
+    fn_var = string  # ${HOME}/.vimrc like
     # bracketed environment variable
     for bkt_var in found:
         fn_var = fn_var.replace(bkt_var, '$' + bkt_var)
-        var = bkt_var[1:-1] # remove {} brackets
+        var = bkt_var[1:-1]  # remove {} brackets
         if var in os.environ:
             fn_value = fn_value.replace(bkt_var, os.environ[var])
         else:
             raise ValueError(
                 'environment variable `${}` not exist'.format(bkt_var))
-    after = _getdir(join('BUFFER', _rmrootslash(fn_var)))
+    after = _getdir(join('BUFFER', fn_var))
     if not isdir(after):
         os.makedirs(after)
     copy(fn_value, after)
+
 
 def add():
     """Add file(s) into the buffer."""
@@ -153,7 +166,7 @@ def add():
     if ('-e' in sys.argv) or ('--env' in sys.argv):
         argv = sys.argv
         argv.remove('-e') if '-e' in argv \
-                          else argv.remove('--env')
+            else argv.remove('--env')
         for arg in argv[2:]:
             env_add(arg)
         return
@@ -166,6 +179,7 @@ def add():
             if not isdir(after):
                 os.makedirs(after)
             copy(arg, after)
+
 
 def status():
     if isfile('SELECTEDTOPIC'):
@@ -182,6 +196,7 @@ def status():
     else:
         print('Nothing in the buffer.')
 
+
 def _topicfy():
     with open('SELECTEDTOPIC', 'r') as selected:
         topicname = selected.read()
@@ -189,6 +204,7 @@ def _topicfy():
         from shutil import move
         move('BUFFER', topicname)
     os.remove('SELECTEDTOPIC')
+
 
 def commit():
     """Commit the files in the buffer to the selected topic.
@@ -199,10 +215,10 @@ def commit():
         print('  (use `{} add <file> ...` to stage files)'.format(sys.argv[0]))
     elif not isfile('SELECTEDTOPIC'):
         print('Fatal: no topic selected')
-        print('  (use `{} select <topic>` to select a topic)'.format(sys.argv[0]))
+        print('  (use `{} select <topic>` to select a topic)'.format(
+            sys.argv[0]))
     else:
         _topicfy()
-
 
 
 if __name__ == '__main__':
