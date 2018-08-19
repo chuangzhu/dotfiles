@@ -135,7 +135,7 @@ def add():
             dir_ = _getdir(join('BUFFER', _rmrootslash(f)))
             if not isdir(dir_):
                 os.makedirs(dir_)
-            copy(sys.argv[2], join(dir_))
+            copy(f, join(dir_))
 
 def status():
     if isfile('SELECTEDTOPIC'):
