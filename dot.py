@@ -6,9 +6,7 @@ from __future__ import unicode_literals
 import os, sys
 from os.path import join, isfile, isdir
 
-def help_():
-    print(
-"""DOT:
+help_text = """DOT:
     Naive dotfiles management util by geneLocated
 
 usage:
@@ -29,7 +27,7 @@ commands:
     commit:		 Store buffer data to a topic you `select`, you may want to run `{fn} apply <topic>` to make links in your directories
 
 operation flow:
-    to get files into fresh management:
+    to get files into a fresh management:
         [{fn} select] -> [{fn} add] -> ... -> [{fn} add] -> [{fn} commit] -> [{fn} apply] -> [git add .] -> [git commit]
     to continue managing on maybe some other device:
         [{fn} apply]
@@ -38,7 +36,9 @@ HINT:
     These files and dirctories are temporary. Instead of tracking them in your repo, add them in `.gitignore`:
     /BUFFER/
     /SELECTEDTOPIC""".format(fn=sys.argv[0])
-    )
+
+def help_():
+    print(help_text)
 
 def list_():
     if len(sys.argv) < 3:
@@ -50,7 +50,7 @@ def list_():
 
 def _rmrootslash(dir_):
     """It is impossible to join '/opt/someplace' and '/home/user/' together
-    using os.path.join. We must remove one of the root splash.
+    using os.path.join. We must remove one the root splash of two dirs.
     """
     if dir_[0] == '/':
         return dir_[1:]
@@ -119,23 +119,53 @@ def select():
             f.flush()
 
 def _getdir(fullname):
+    """Get dir of a file"""
     return os.path.split(fullname)[0]
 
 def _getshortname(fullname):
+    """Get short name of a file"""
     return os.path.split(fullname)[1]
+
+def env_add(string):
+    from shutil import copy
+    import re
+    found = re.findall('{.*?}', string)
+    fn_value = string # /home/user/.vimrc like
+    fn_var = string # ${HOME}/.vimrc like
+    # bracketed environment variable
+    for bkt_var in found:
+        fn_var = fn_var.replace(bkt_var, '$' + bkt_var)
+        var = bkt_var[1:-1] # remove {} brackets
+        if var in os.environ:
+            fn_value = fn_value.replace(bkt_var, os.environ[var])
+        else:
+            raise ValueError(
+                'environment variable `${}` not exist'.format(bkt_var))
+    after = _getdir(join('BUFFER', _rmrootslash(fn_var)))
+    if not isdir(after):
+        os.makedirs(after)
+    copy(fn_value, after)
 
 def add():
     """Add file(s) into the buffer."""
+    from shutil import copy
+    # environment variable mode
+    if ('-e' in sys.argv) or ('--env' in sys.argv):
+        argv = sys.argv
+        argv.remove('-e') if '-e' in argv \
+                          else argv.remove('--env')
+        for arg in argv[2:]:
+            env_add(arg)
+        return
+
     if len(sys.argv) == 2:
         print('Nothing specified, nothing added.')
     else:
-        from shutil import copy
-        for f in sys.argv[2:]:
-            # remove root slash
-            dir_ = _getdir(join('BUFFER', _rmrootslash(f)))
-            if not isdir(dir_):
-                os.makedirs(dir_)
-            copy(f, join(dir_))
+        for arg in sys.argv[2:]:
+            after = _getdir(join('BUFFER', _rmrootslash(arg)))
+            if not isdir(after):
+                os.makedirs(after)
+            copy(arg, after)
 
 def status():
     if isfile('SELECTEDTOPIC'):

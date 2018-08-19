@@ -19,7 +19,11 @@ select:
 	@python ./dot.py select $(topic)
 
 add:
+ifeq ($(env), true)
+	@python ./dot.py add -e $(file)
+else
 	@python ./dot.py add $(file)
+endif
 
 status:
 	@python ./dot.py status
