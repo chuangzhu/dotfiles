@@ -99,13 +99,13 @@ def apply():
             # make dir if not exist
             dir_ = _getdir(target)
             if not isdir(dir_):
-                os.makedirs(dir_)
+                os.system('mkdir -p ' + dir_)
             # backup the file if already exist
             if isfile(target) and not isfile(target + '.BAK'):
                 os.rename(target, target + '.BAK')
             elif isfile(target):
                 os.remove(target)
-            os.system('ln -s {ori} {tar}'.format(ori=ori, tar=target))
+            os.system('ln -s {ori} {tar}'.format(ori="'{}'".format(ori), tar=target))
 
 
 def recover():
