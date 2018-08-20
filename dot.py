@@ -22,20 +22,17 @@ commands:
 
     add <file> ...:	Stage files you want to backup to a temporary buffer
     status:		Display files you staged and the topic you are going to commit to
-    select <topic>:	Select the topic you would like to commit to
-    select:		Cancel selecting topic
-    commit:		 Store buffer data to a topic you `select`, you may want to run `{fn} apply <topic>` to make links in your directories
+    commit <topic>: 	 Store buffer data to a topic, you may want to run `{fn} apply <topic>` to make links in your directories
 
 operation flow:
     to get files into a fresh management:
-        [{fn} select] -> [{fn} add] -> ... -> [{fn} add] -> [{fn} commit] -> [{fn} apply] -> [git add .] -> [git commit]
+        [{fn} add] -> ... -> [{fn} add] -> [{fn} commit] -> [{fn} apply] -> [git add .] -> [git commit]
     to continue managing on maybe some other device:
         [{fn} apply]
 
 HINT:
     These files and dirctories are temporary. Instead of tracking them in your repo, add them in `.gitignore`:
-    /BUFFER/
-    /SELECTEDTOPIC""".format(fn=sys.argv[0])
+    /BUFFER/""".format(fn=sys.argv[0])
 
 
 def help_():
@@ -118,16 +115,6 @@ def recover():
             os.rename(f + '.BAK', f)
 
 
-def select():
-    """Select a topic to commit."""
-    if len(sys.argv) == 2 and isfile('SELECTEDTOPIC'):
-        os.remove('SELECTEDTOPIC')
-    elif len(sys.argv) == 3:
-        with open('SELECTEDTOPIC', 'w') as f:
-            f.write(_prefixtopic(sys.argv[2]))
-            f.flush()
-
-
 def _getdir(fullname):
     """Get dir of a file"""
     return os.path.split(fullname)[0]
@@ -182,28 +169,11 @@ def add():
 
 
 def status():
-    if isfile('SELECTEDTOPIC'):
-        print('Selected topic:')
-        print('  (use `{} select` to unselect)'.format(sys.argv[0]))
-        with open('SELECTEDTOPIC', 'r') as f:
-            print(f.read())
-    else:
-        print('No topic selected.')
-    print()
     if isdir('BUFFER') and len(_getfiles('BUFFER')) != 0:
             print('Files staged in the buffer:')
             print(_getfiles('BUFFER'))
     else:
         print('Nothing in the buffer.')
-
-
-def _topicfy():
-    with open('SELECTEDTOPIC', 'r') as selected:
-        topicname = selected.read()
-        # shutil.move is easy to use!
-        from shutil import move
-        move('BUFFER', topicname)
-    os.remove('SELECTEDTOPIC')
 
 
 def commit():
@@ -213,12 +183,9 @@ def commit():
     if not (isdir('BUFFER') and len(_getfiles('BUFFER')) != 0):
         print('Fatal: no file staged in the buffer')
         print('  (use `{} add <file> ...` to stage files)'.format(sys.argv[0]))
-    elif not isfile('SELECTEDTOPIC'):
-        print('Fatal: no topic selected')
-        print('  (use `{} select <topic>` to select a topic)'.format(
-            sys.argv[0]))
     else:
-        _topicfy()
+        from shutil import move
+        move('BUFFER', _prefixtopic(sys.argv[2]))
 
 
 if __name__ == '__main__':
@@ -234,7 +201,6 @@ if __name__ == '__main__':
          'apply': apply,
          'recover': recover,
 
-         'select': select,
          'add': add,
          'status': status,
          'st': status,
