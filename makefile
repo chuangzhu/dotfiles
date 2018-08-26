@@ -19,7 +19,7 @@ select:
 	@python ./dot.py select $(topic)
 
 add:
-	@python ./dot.py add $(file)
+	@python ./dot.py add '$(file)'
 
 status:
 	@python ./dot.py status
