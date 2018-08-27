@@ -115,12 +115,13 @@ def apply(topic):
     topic = _prefixtopic(topic)
     for target in _getfiles(topic):
         ori = join(os.getcwd(), topic, _rmrootslash(target))
+        target = _rpenv(target)
         print(ori)
         print('\033[1;32m{}\033[0m'.format(target))
         # make dir if not exist
         dir_ = _getdir(target)
         if not isdir(dir_):
-            os.system('mkdir -p ' + dir_)
+            os.makedirs(dir_)
         # backup the file if already exist
         if isfile(target) and not isfile(target + '.BAK'):
             os.rename(target, target + '.BAK')
