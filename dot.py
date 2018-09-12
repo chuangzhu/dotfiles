@@ -17,22 +17,22 @@ def option(command, default='__special_none__', mode=str):
         def wrapper(*args):
             opt = default
             if command in sys.argv:
-                li = []
-                for i in sys.argv[sys.argv.index(command) + 1:]:
-                    if i.find('-') == 0:
-                        break
-                    li.append(i)
-                if mode == tuple:
-                    opt = tuple(li)
-                elif len(li) > 0:
-                    if mode == bool:
-                        opt = True
-                    else:
+                if mode == bool:
+                    opt = True
+                else:
+                    li = []
+                    for i in sys.argv[sys.argv.index(command) + 1:]:
+                        if i.find('-') == 0:
+                            break
+                        li.append(i)
+                    if mode == tuple:
+                        opt = tuple(li)
+                    elif len(li) > 0:
                         opt = mode(li[0])
-                elif default == '__special_none__':
-                    print('Missing value for %s.' % command)
-                    sys.exit(-2)
-            elif dafault == '__special_none__':
+                    elif default == '__special_none__':
+                        print('Missing value for %s.' % command)
+                        sys.exit(-2)
+            elif default == '__special_none__':
                 print("Missing option '%s'" % command)
                 sys.exit(-1)
             return fn(*args + (opt,))
@@ -40,10 +40,7 @@ def option(command, default='__special_none__', mode=str):
     return decorate
 
 
-help_text = """DOT:
-    Naive dotfiles management util by geneLocated
-
-usage:
+help_text = """usage:
     `make <command> [args=<args>]` or
     `python {fn} <command> <args>`
 
@@ -51,16 +48,16 @@ commands:
     help:		Display this message
     list:		List exist topics
     list <topic>:	List .files under this topic
-    apply <topic>:	Apply a topic of .files (by making soft links in some directory)
+    apply <topic>:	Apply a topic of .files to its directory
     recover <topic>:	Stop manage a topic of .files, and try to restore
 
     add <file> ...:	Stage files you want to backup in buffer
     status:		Display files you staged and the topic you are going to commit to
-    commit <topic>: 	Store buffer data to a topic
+    commit <topic>: 	Store buffer data to a topic, and apply it
 
 operation flow:
     to get files into management:
-        [{fn} add] -> ... -> [{fn} add] -> [{fn} commit] -> [{fn} apply] -> [git add .] -> [git commit]
+        [{fn} add] -> ... -> [{fn} add] -> [{fn} commit] -> [git add .] -> [git commit]
     to continue managing:
         [{fn} apply]""".format(fn=sys.argv[0])
 
@@ -70,10 +67,16 @@ def help_():
 
 
 @option('list', default=None)
-def list_(topic=None):
+@option('-a', mode=bool, default=False)
+def list_(topic=None, display_all=False):
     if topic == None:
-        # list topics in this repo
-        print(_gettopic())
+        if display_all:
+            print(_gettopic())
+        else:
+            def f(string):
+                return string[0] != '_'
+            a = list(filter(f, _gettopic()))
+            print(a)
     else:
         # list dotfiles under a topic
         print(_getfiles(_prefixtopic(topic)))
@@ -113,7 +116,7 @@ def _getfiles(topic):
 
 
 @option('apply')
-def apply(topic):
+def apply_(topic):
     """Apply a topic."""
     topic = _prefixtopic(topic)
     for target in _getfiles(topic):
@@ -199,14 +202,14 @@ def add(files):
 
 def status():
     if isdir('BUFFER') and len(_getfiles('BUFFER')) != 0:
-            print('Files staged in the buffer:')
-            print(_getfiles('BUFFER'))
+        print('Files staged in the buffer:')
+        print(_getfiles('BUFFER'))
     else:
         print('Nothing in the buffer.')
 
 
-@option('commit')
-def commit(topic):
+@option('save')
+def save(topic):
     """Store the files in the buffer to a topic."""
     if not (isdir('BUFFER') and len(_getfiles('BUFFER')) != 0):
         print('Fatal: no file staged in the buffer')
@@ -214,6 +217,12 @@ def commit(topic):
     else:
         from shutil import move
         move('BUFFER', _prefixtopic(topic))
+
+
+@option('commit')
+def commit(topic):
+    save(topic)
+    apply_(topic)
 
 
 if __name__ == '__main__':
@@ -224,8 +233,9 @@ if __name__ == '__main__':
     else:
         {'help': help_,
          'list': list_,
-         'apply': apply,
+         'apply': apply_,
          'recover': recover,
          'add': add,
          'status': status,
-         'commit': commit}[sys.argv[1]]()
+         'commit': commit,
+         'save': save}[sys.argv[1]]()
