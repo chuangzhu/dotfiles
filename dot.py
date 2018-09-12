@@ -13,25 +13,28 @@ def option(command, default='__special_none__', mode=str):
     """
     if type(mode) != type:
         raise ValueError('mode must be type')
-    opt = default
-    if command in sys.argv:
-        li = []
-        for i in sys.argv[sys.argv.index(command) + 1:]:
-            if i.find('-') == 0:
-                break
-            li.append(i)
-        if mode == tuple:
-            opt = tuple(li)
-        elif len(li) > 0:
-            if mode == bool:
-                opt = True
-            else:
-                opt = mode(li[0])
-        elif default == '__special_none__':
-            print('Missing value for %s.' % command)
-            sys.exit(-1)
     def decorate(fn):
         def wrapper(*args):
+            opt = default
+            if command in sys.argv:
+                li = []
+                for i in sys.argv[sys.argv.index(command) + 1:]:
+                    if i.find('-') == 0:
+                        break
+                    li.append(i)
+                if mode == tuple:
+                    opt = tuple(li)
+                elif len(li) > 0:
+                    if mode == bool:
+                        opt = True
+                    else:
+                        opt = mode(li[0])
+                elif default == '__special_none__':
+                    print('Missing value for %s.' % command)
+                    sys.exit(-2)
+            elif dafault == '__special_none__':
+                print("Missing option '%s'" % command)
+                sys.exit(-1)
             return fn(*args + (opt,))
         return wrapper
     return decorate
