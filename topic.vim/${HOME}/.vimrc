@@ -14,7 +14,7 @@ autocmd BufNewFile,BufRead *.html,*.css,*.js,*.json set shiftwidth=2 softtabstop
 autocmd BufNewFile,BufRead *.js,*.json set cindent
 autocmd BufNewFile,BufRead *.wxml,*.wxss,*.wxs set shiftwidth=2 softtabstop=2
 autocmd BufNewFile,BufRead *.py set cindent
-autocmd BufNewFile,BufRead *.go set cindent
+autocmd BufNewFile,BufRead *.go set tabstop=4 cindent noexpandtab
 
 " wechat applet
 autocmd BufNewFile,BufRead *.wxml set syn=html
