@@ -1,0 +1,7 @@
+[Adblock Plus 2.0]
+! Homepage: https://github.com/genelocated/dotfiles
+! Title: Live Better in the Wall
+! 提高一些网站的加载速度。
+
+! StackOverflow 加速页面加载
+ajax.googleapis.com

@@ -35,10 +35,6 @@ user.qzone.qq.com##li.f-single.f-s-s.f-single-biz
 ||pgdt.gtimg.cn/gdt/0
 ||qzonestyle.gtimg.cn/qzone/space_item/boss_pic/*
 
-
-! StackOverflow 加速页面加载
-ajax.googleapis.com
-
 ! 奇虎 360
 s.union.360.cn/230363.js
 qhimg.com
