@@ -1,6 +1,12 @@
 
+" high light
+syntax on
+
 " display line numbers
-set nu!
+set nu
+
+" disable bells
+set belloff=all
 
 " indent
 set smartindent
