@@ -41,49 +41,49 @@ def option(command, default='__special_none__', mode=str):
 
 
 help_text = """usage:
-    `make <command> [args=<args>]` or
-    `python {fn} <command> <args>`
+    {fn} <command> <args>
+    or:  make <command> <arg_name>=<args>
 
 commands:
-    help:		Display this message
-    list:		List exist topics
-    list <topic>:	List .files under this topic
-    apply <topic>:	Apply a topic of .files to its directory
-    recover <topic>:	Stop manage a topic of .files, and try to restore
+    list		List exist topics
+    list <topic>	List .files under this topic
+    apply <topic>	Apply a topic of .files to its directory
+    recover <topic>	Restore the situation before applying
 
-    add <file> ...:	Stage files you want to backup in buffer
-    status:		Display files you staged and the topic you are going to commit to
-    commit <topic>: 	Store buffer data to a topic, and apply it
-
-operation flow:
-    to get files into management:
-        [{fn} add] -> ... -> [{fn} add] -> [{fn} commit] -> [git add .] -> [git commit]
-    to continue managing:
-        [{fn} apply]""".format(fn=sys.argv[0])
+    add <file> ...	Stage files in the BUFFER
+    status		Display files you staged
+    commit <topic> 	Store buffered files to a topic, then apply"""
 
 
 def help_():
-    print(help_text)
-
+    print(help_text.format(fn=sys.argv[0]))
 
 @option('list', default=None)
 @option('-a', mode=bool, default=False)
 def list_(topic=None, display_all=False):
-    if topic == None:
-        if display_all:
-            print(_gettopic())
+    if os.system('tree --version > /dev/null') == 0:
+        if topic == None:
+            if display_all:
+                os.system('tree -a --noreport topic.*')
+            else:
+                os.system('tree -a --noreport topic.[!_]*')
         else:
-            def f(string):
-                return string[0] != '_'
-            a = list(filter(f, _gettopic()))
-            print(a)
+            os.system('tree -a --noreport ' + _prefixtopic(topic))
     else:
-        # list dotfiles under a topic
-        print(_getfiles(_prefixtopic(topic)))
+        if topic == None:
+            if display_all:
+                print(_gettopic())
+            else:
+                def f(string):
+                    return string[0] != '_'
+                a = list(filter(f, _gettopic()))
+                print(a)
+        else:
+            print(_getfiles(_prefixtopic(topic)))
 
 
 # os.path.join('/opt/someplace', '/home/user/') returns the latter
-def _rmrootslash(dir_):
+def _rmslash(dir_):
     """Remove root slash"""
     if dir_[0] == '/':
         return dir_[1:]
@@ -120,7 +120,7 @@ def apply_(topic):
     """Apply a topic."""
     topic = _prefixtopic(topic)
     for target in _getfiles(topic):
-        ori = join(os.getcwd(), topic, _rmrootslash(target))
+        ori = join(os.getcwd(), topic, _rmslash(target))
         target = _rpenv(target)
         print(ori)
         print('\033[1;32m{}\033[0m'.format(target))
@@ -194,7 +194,7 @@ def add(files):
             # add relative file to abs path BUFFER
             if not os.path.isabs(_rpenv(arg)):
                 after = os.path.abspath(arg)
-            after = _getdir(join('BUFFER', _rmrootslash(after)))
+            after = _getdir(join('BUFFER', _rmslash(after)))
             if not isdir(after):
                 os.makedirs(after)
             copy(before, after)
@@ -216,8 +216,8 @@ def save(topic):
         print('  (use `{} add <file> ...` to stage files)'.format(sys.argv[0]))
     else:
         for f in _getfiles('BUFFER'):
-            os.renames(join('./BUFFER', _rmrootslash(f)),
-                       join(_prefixtopic(topic), _rmrootslash(f)))
+            os.renames(join('./BUFFER', _rmslash(f)),
+                       join(_prefixtopic(topic), _rmslash(f)))
 
 
 @option('commit')
