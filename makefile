@@ -1,33 +1,33 @@
 
-.PHONY: help list ls apply select add status commit ci
+.PHONY: help list ls apply add status save commit ci
 
 help:
-	@python ./dot.py help
+	@python ./dfs help
 
 list:
-	@python ./dot.py list $(topic)	
+	@python ./dfs list $(topic)	
 
 ls: list
 
 apply:
-	@python ./dot.py apply $(topic)
+	@python ./dfs apply $(topic)
 
 recover:
-	@python ./dot.py recover $(topic)
-
-select:
-	@python ./dot.py select $(topic)
+	@python ./dfs recover $(topic)
 
 add:
-	@python ./dot.py add '$(file)'
+	@python ./dfs add '$(file)'
 
 status:
-	@python ./dot.py status
+	@python ./dfs status
+
+save:
+	@python ./dfs save
 
 st: status
 
 commit:
-	@python ./dot.py commit
+	@python ./dfs commit
 
 ci: commit
 	
