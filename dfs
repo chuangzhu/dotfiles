@@ -215,8 +215,9 @@ def save(topic):
         print('Fatal: no file staged in the buffer')
         print('  (use `{} add <file> ...` to stage files)'.format(sys.argv[0]))
     else:
-        from shutil import move
-        move('BUFFER', _prefixtopic(topic))
+        for f in _getfiles('BUFFER'):
+            os.renames(join('./BUFFER', _rmrootslash(f)),
+                       join(_prefixtopic(topic), _rmrootslash(f)))
 
 
 @option('commit')
