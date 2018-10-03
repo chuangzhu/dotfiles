@@ -8,6 +8,8 @@ set nu
 " disable bells
 set belloff=all
 
+set encoding=utf-8
+
 " indent
 set smartindent
 set shiftwidth=4
@@ -22,7 +24,7 @@ autocmd BufNewFile,BufRead *.wxml,*.wxss,*.wxs set shiftwidth=2 softtabstop=2
 autocmd BufNewFile,BufRead *.py set cindent
 autocmd BufNewFile,BufRead *.go set tabstop=4 cindent noexpandtab
 
-" wechat applet
+" highlight
 autocmd BufNewFile,BufRead *.wxml set syn=html
 autocmd BufNewFile,BufRead *.wxss set syn=css
 autocmd BufNewFile,BufRead *.wxs set syn=javascript
