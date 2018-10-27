@@ -6,5 +6,9 @@
 	ci = commit
 	st = status
 	lg = log --color --graph --pretty=format:'%C(auto)%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+	lga = log --color --graph --pretty=format:'%C(auto)%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --all
+	hide = update-index --assume-unchanged
+	unhide = update-index --no-assume-unchanged
+	hided = !git ls-files -v | grep "^h"
 [core]
 	editor = vim
