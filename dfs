@@ -3,16 +3,18 @@
 
 from __future__ import print_function
 from __future__ import unicode_literals
-import os, sys
-from os.path import join, isfile, isdir
+import os
+import sys
+from os.path import join, isfile, isdir, abspath
 
 
 def option(command, default='__special_none__', mode=str):
-    """Decorator to pass sys.argv to functions,  
+    """Decorator to pass sys.argv to functions,
     imitates https://github.com/pallets/click
     """
     if type(mode) != type:
         raise ValueError('mode must be type')
+
     def decorate(fn):
         def wrapper(*args):
             opt = default
@@ -37,6 +39,7 @@ def option(command, default='__special_none__', mode=str):
                 sys.exit(-1)
             return fn(*args + (opt,))
         return wrapper
+
     return decorate
 
 
@@ -58,20 +61,15 @@ commands:
 def help_():
     print(help_text.format(fn=sys.argv[0]))
 
+
 @option('list', default=None)
 @option('-a', mode=bool, default=False)
-def list_(topic=None, display_all=False):
-    if os.system('tree --version > /dev/null') == 0:
-        if topic == None:
-            if display_all:
-                os.system('tree -a --noreport topic.*')
-            else:
-                os.system('tree -a --noreport topic.[!_]*')
-        else:
-            os.system('tree -a --noreport ' + _prefixtopic(topic))
+def list_(topic=None, all_=False):
+    if os.system('which tree > /dev/null') == 0:
+        _list_tree(topic, all_)
     else:
-        if topic == None:
-            if display_all:
+        if topic is None:
+            if all_:
                 print(_gettopic())
             else:
                 def f(string):
@@ -82,10 +80,19 @@ def list_(topic=None, display_all=False):
             print(_getfiles(_prefixtopic(topic)))
 
 
+def _list_tree(topic, all_):
+    PREFIX = 'tree -a --noreport '
+    if topic is None:
+        suffix = 'topic.*' if all_ else 'topic.[^_]*'
+        os.system(PREFIX + suffix)
+    else:
+        os.system(PREFIX + _prefixtopic(topic))
+
+
 # os.path.join('/opt/someplace', '/home/user/') returns the latter
 def _rmslash(dir_):
     """Remove root slash"""
-    if dir_[0] == '/':
+    if len(dir_) != 0 and dir_[0] == '/':
         return dir_[1:]
     return dir_
 
@@ -110,7 +117,7 @@ def _getfiles(topic):
     # os.walk returns a list of tuples,
     # every tuple is (root: str, dirs: list, files: list)
     # files = [f for i in dirs for f in i[2]]
-    files = [join(i[0], f)[1:] for i in dirs for f in i[2]]
+    files = [join(i[0], f) for i in dirs for f in i[2]]
     os.chdir('..')
     return files
 
@@ -119,25 +126,23 @@ def _getfiles(topic):
 def apply_(topic):
     """Apply a topic."""
     topic = _prefixtopic(topic)
-    for target in _getfiles(topic):
-        ori = join(os.getcwd(), topic, _rmslash(target))
-        target = _rpenv(target)
+    for f in _getfiles(topic):
+        ori = abspath(join(topic, f))
+        f = _there(_rpenv(f))
         print(ori)
-        print('\033[1;32m{}\033[0m'.format(target))
+        print('\033[1;32m{}\033[0m'.format(f))
         # make dir if not exist
-        dir_ = _getdir(target)
+        dir_ = _getdir(f)
         if not isdir(dir_):
             os.makedirs(dir_)
         # backup the file if already exist
-        if isfile(target) and not isfile(target + '.BAK'):
-            os.rename(target, target + '.BAK')
-        else:
-            try:
-                os.remove(target)
-            # except FileNotFoundError:
-            except OSError:
-                pass
-        os.system('ln -s {ori} {tar}'.format(ori="'{}'".format(ori), tar=target))
+        backup = f + '.BAK'
+        if isfile(f):
+            if not isfile(backup):
+                os.rename(f, backup)
+            else:
+                os.remove(f)
+        os.symlink(ori, f)
 
 
 @option('recover')
@@ -145,11 +150,12 @@ def recover(topic):
     """Remove the link file, and recover from the .BAK file"""
     topic = _prefixtopic(topic)
     for f in _getfiles(topic):
-        f = _rpenv(f)
+        f = _there(_rpenv(f))
+        backup = f + '.BAK'
         if isfile(f):
             os.remove(f)
-        if isfile(f + '.BAK'):
-            os.rename(f + '.BAK', f)
+        if isfile(backup):
+            os.rename(backup, f)
 
 
 def _getdir(fullname):
@@ -178,26 +184,44 @@ def _rpenv(string):
             raise ValueError(
                 'environment variable `${}` not exist'.format(bkt_var))
         return fn_value
+    # TODO: indent of return?
+
+
+def _rmhome(string):
+    home = os.environ['HOME']
+    if string.find(home) == 0:
+        return string[len(home):]
+    return join('ROOT', _rmslash(string))
+
+
+def _here(there):
+    # add relative file to abs path BUFFER
+    abs_ = os.path.abspath(there)
+    return join('BUFFER', _rmslash(_rmhome(abs_)))
+
+
+def _there(here):
+    if here.find('ROOT') in (0, 2):
+        return here[here.index('ROOT') + len('ROOT'):]
+    return join(os.environ['HOME'], here)
 
 
 @option('add', mode=tuple)
 def add(files):
     """Add file(s) into buffer."""
-    from shutil import copy
     if len(files) == 0:
         print('Nothing specified, nothing added.')
     else:
-        for arg in files:
-            before = _rpenv(arg)
-            before = os.path.abspath(before)
-            after = arg
-            # add relative file to abs path BUFFER
-            if not os.path.isabs(_rpenv(arg)):
-                after = os.path.abspath(arg)
-            after = _getdir(join('BUFFER', _rmslash(after)))
-            if not isdir(after):
-                os.makedirs(after)
-            copy(before, after)
+        from shutil import copyfile, copytree
+        for f in files:
+            before = abspath(_rpenv(f))
+            after = _here(before)
+            if isdir(before):
+                copytree(before, after)
+                return
+            if not isdir(_getdir(after)):
+                os.makedirs(_getdir(after))
+            copyfile(before, after)
 
 
 def status():
@@ -216,21 +240,23 @@ def save(topic):
         print('  (use `{} add <file> ...` to stage files)'.format(sys.argv[0]))
     else:
         for f in _getfiles('BUFFER'):
-            os.renames(join('./BUFFER', _rmslash(f)),
+            os.renames(join('.', 'BUFFER', _rmslash(f)),
                        join(_prefixtopic(topic), _rmslash(f)))
+        os.removedirs(join('.', 'BUFFER'))
 
 
 @option('commit')
 def commit(topic):
+    # TODO: not avaliable due to decorator
     save(topic)
     apply_(topic)
 
 
 if __name__ == '__main__':
-    # print(sys.argv)
     # display help if no args provided
     if len(sys.argv) < 2:
         help_()
+        sys.exit(1)
     else:
         {'help': help_,
          'list': list_,
