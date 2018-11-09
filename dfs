@@ -83,7 +83,7 @@ def list_(topic=None, all_=False):
 def _list_tree(topic, all_):
     PREFIX = 'tree -a --noreport '
     if topic is None:
-        suffix = 'topic.*' if all_ else 'topic.[^_]*'
+        suffix = 'topic.*' if all_ else 'topic.[!_]*'
         os.system(PREFIX + suffix)
     else:
         os.system(PREFIX + _prefixtopic(topic))
