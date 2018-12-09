@@ -1,0 +1,88 @@
+#!/bin/bash
+
+add() {
+    cp -r $* './BUFFER'
+}
+
+list() {
+    if [[ -n $1 ]]; then
+        tree -a --noreport topic.*
+    else
+        tree -a --noreport topic.[!_]*
+    fi
+}
+
+_prefix() {
+    case $1 in
+        topic.*) echo $1 ;;
+        *) echo "topic.$1" ;;
+    esac
+}
+
+save() {
+    mv "./BUFFER/*" "./BUFFER/*" `_prefix $1`
+}
+
+apply() {
+    local topic files after
+    topic=`_prefix $1`
+    files=(`find $topic -not -type d`)
+    for f in ${files[@]}; do
+        case $f in
+            $topic/ROOT/*)
+                echo $f
+                echo -e "\033[32m"${f#"$topic/ROOT"}"\033[0m"
+            ;;
+            $topic/*)
+                echo $f
+                echo -e "\033[32m"$HOME/${f#"$topic/"}"\033[0m"
+            ;;
+        esac
+    done
+}
+
+
+
+: << EOF
+for j in $*; do
+    case $i in
+        -*) ;;
+        *) args=(${args[@]} $i) ;;
+    esac
+done
+EOF
+
+main() {
+    local todo display_all
+    for i in $*; do
+        case $i in
+            --*)
+                case $i in
+                    --add) todo=add ;;
+                    --save) todo=save ;;
+                    --list) todo=list ;;
+                    --all) display_all=true ;;
+                esac
+            ;;
+            -*)
+                i=${i:1}
+                for ((j=0; j<${#i}; j++)); do
+                    case ${i:$j:$j+1} in
+                        a) todo=add ;;
+                        s) todo=status_ ;;
+                        S) todo=save ;;
+                        l) todo=list ;;
+                        A) display_all=true ;;
+                    esac
+                done
+            ;;
+            *) targets=(${targets[@]} $i) ;;
+        esac
+    done
+    if [[ -z $todo ]]; then
+        todo=apply
+    fi
+    $todo $display_all ${targets[@]}
+}
+
+main $*
