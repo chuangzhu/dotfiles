@@ -21,7 +21,7 @@ plugins=(
   git
   archlinux
   python
-  pip
+  go
 )
 
 ZSH_CACHE_DIR=$HOME/.oh-my-zsh-cache
@@ -47,12 +47,13 @@ alias ds='du -hd 1'
 alias gut=git
 function sin() {
     eval $(ssh-agent)
-    for i in ~/.ssh/id_rsa*
-    do
-        if ! echo $i | grep -q '.pub'; then
-            ssh-add $i
+    local a i
+    for i in ~/.ssh/*; do
+        if [ -f $i.pub ]; then
+            a=(${a[@]} $i)
         fi
     done
+    ssh-add ${a[@]}
 }
 ghub='https://github.com'
 mhub='git@github.com:genelocated'
