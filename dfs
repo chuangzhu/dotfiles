@@ -23,21 +23,32 @@ save() {
     mv "./BUFFER/*" "./BUFFER/*" `_prefix $1`
 }
 
+_green() {
+    echo -e "\033[32m$1\033[0m"
+}
+
 apply() {
-    local topic files after
-    topic=`_prefix $1`
-    files=(`find $topic -not -type d`)
+    local f after permit
+    local topic=`_prefix $1`
+    local -a files=(`find $topic -not -type d`)
     for f in ${files[@]}; do
         case $f in
-            $topic/ROOT/*)
-                echo $f
-                echo -e "\033[32m"${f#"$topic/ROOT"}"\033[0m"
-            ;;
-            $topic/*)
-                echo $f
-                echo -e "\033[32m"$HOME/${f#"$topic/"}"\033[0m"
-            ;;
+            $topic/ROOT/*) _green ${f#"$topic/ROOT"} ;;
+            $topic/*) _green '~/'${f#"$topic/"} ;;
         esac
+    done
+    read -p "Process? [Y/n] " permit
+    case $permit in
+        Y|y|[Yy][Ee][Ss]) ;;
+        *) echo "Aborted."; exit 1 ;;
+    esac
+    for f in ${files[@]}; do
+        case $f in
+            $topic/ROOT/*) after=${f#"$topic/ROOT"} ;;
+            $topic/*) after=$HOME/${f#"$topic/"} ;;
+        esac
+        # absolute path
+        ln -sf `readlink -f $f` $after
     done
 }
 
