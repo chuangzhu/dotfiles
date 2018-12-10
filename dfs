@@ -13,10 +13,13 @@ list() {
 }
 
 _prefix() {
-    case $1 in
-        topic.*) echo $1 ;;
-        *) echo "topic.$1" ;;
-    esac
+    local topic
+    for topic in $*; do
+        case $topic in
+            topic.*) echo $topic ;;
+            *) echo "topic.$topic" ;;
+        esac
+    done
 }
 
 save() {
@@ -28,27 +31,28 @@ _green() {
 }
 
 apply() {
-    local f after permit
-    local topic=`_prefix $1`
-    local -a files=(`find $topic -not -type d`)
-    for f in ${files[@]}; do
+    local files=(`find $(_prefix $*) -not -type d`) afters=()
+    local f; for f in ${files[@]}; do
         case $f in
-            $topic/ROOT/*) _green ${f#"$topic/ROOT"} ;;
-            $topic/*) _green '~/'${f#"$topic/"} ;;
+            topic.*/ROOT/*)
+                after=${f#topic.*/ROOT}
+                _green $after
+            ;;
+            topic.*/*)
+                 after=$HOME/${f#topic.*/}
+                _green '~/'${f#topic.*/}
+            ;;
         esac
+        afters=(${afters[@]} $after)
     done
-    read -p "Process? [Y/n] " permit
+    local permit; read -p "Process? [Y/n] " permit
     case $permit in
-        Y|y|[Yy][Ee][Ss]) ;;
+        Y | y | [Yy][Ee][Ss] | '') ;;
         *) echo "Aborted."; exit 1 ;;
     esac
-    for f in ${files[@]}; do
-        case $f in
-            $topic/ROOT/*) after=${f#"$topic/ROOT"} ;;
-            $topic/*) after=$HOME/${f#"$topic/"} ;;
-        esac
+    local i; for i in ${!files[@]}; do
         # absolute path
-        ln -sf `readlink -f $f` $after
+        ln -sf `readlink -f ${files[$i]}` ${afters[$i]}
     done
 }
 
@@ -91,6 +95,9 @@ main() {
         esac
     done
     if [[ -z $todo ]]; then
+        if [[ -z $targets ]]; then
+            exit 1
+        fi
         todo=apply
     fi
     $todo $display_all ${targets[@]}
