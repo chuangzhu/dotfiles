@@ -5,10 +5,16 @@ add() {
 }
 
 list() {
-    if [[ -n $1 ]]; then
-        tree -a --noreport topic.*
+    if [[ -z $2 ]]; then
+        if [[ $1 == 'true' ]]; then
+            tree -a --noreport topic.*
+        else
+            tree -a --noreport topic.[!_]*
+        fi
     else
-        tree -a --noreport topic.[!_]*
+        local topics=($*)
+        unset topics[0]
+        tree -a --noreport `_prefix ${topics[@]}`
     fi
 }
 
@@ -23,7 +29,7 @@ _prefix() {
 }
 
 save() {
-    mv "./BUFFER/*" "./BUFFER/*" `_prefix $1`
+    mv "./BUFFER/*" "./BUFFER/.*" `_prefix $1`
 }
 
 _green() {
@@ -68,26 +74,26 @@ done
 EOF
 
 main() {
-    local todo display_all
-    for i in $*; do
+    local todo display_all='false'
+    local i; for i in $*; do
         case $i in
             --*)
                 case $i in
                     --add) todo=add ;;
                     --save) todo=save ;;
                     --list) todo=list ;;
-                    --all) display_all=true ;;
+                    --all) display_all='true' ;;
                 esac
             ;;
             -*)
                 i=${i:1}
-                for ((j=0; j<${#i}; j++)); do
+                local j; for ((j=0; j<${#i}; j++)); do
                     case ${i:$j:$j+1} in
                         a) todo=add ;;
                         s) todo=status_ ;;
                         S) todo=save ;;
                         l) todo=list ;;
-                        A) display_all=true ;;
+                        A) display_all='true' ;;
                     esac
                 done
             ;;
@@ -100,7 +106,10 @@ main() {
         fi
         todo=apply
     fi
-    $todo $display_all ${targets[@]}
+    case $todo in
+        list) $todo $display_all ${targets[@]} ;;
+        *) $todo ${targets[@]} ;;
+    esac
 }
 
 main $*
