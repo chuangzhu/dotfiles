@@ -5,16 +5,14 @@ add() {
 }
 
 list() {
-    if [[ -z $2 ]]; then
-        if [[ $1 == 'true' ]]; then
+    if [[ -z $* ]]; then
+        if [[ $display_all ]]; then
             tree -a --noreport topic.*
         else
             tree -a --noreport topic.[!_]*
         fi
     else
-        local topics=($*)
-        unset topics[0]
-        tree -a --noreport `_prefix ${topics[@]}`
+        tree -a --noreport `_prefix $*`
     fi
 }
 
@@ -64,52 +62,30 @@ apply() {
 
 
 
-: << EOF
-for j in $*; do
-    case $i in
-        -*) ;;
-        *) args=(${args[@]} $i) ;;
-    esac
-done
-EOF
-
 main() {
-    local todo display_all='false'
-    local i; for i in $*; do
-        case $i in
-            --*)
-                case $i in
-                    --add) todo=add ;;
-                    --save) todo=save ;;
-                    --list) todo=list ;;
-                    --all) display_all='true' ;;
-                esac
-            ;;
-            -*)
-                i=${i:1}
-                local j; for ((j=0; j<${#i}; j++)); do
-                    case ${i:$j:$j+1} in
-                        a) todo=add ;;
-                        s) todo=status_ ;;
-                        S) todo=save ;;
-                        l) todo=list ;;
-                        A) display_all='true' ;;
-                    esac
-                done
-            ;;
-            *) targets=(${targets[@]} $i) ;;
+    local todo
+    while true; do
+        # _green $1
+        case $1 in
+            -a | --add) todo=add; shift ;;
+            -S | --save) todo=save; shift ;;
+            -s | --status) todo=status; shift ;;
+            -l | --list) todo=list; shift ;;
+            -A | --all) display_all='true'; shift ;;
+            --) shift; break ;;
+            *) echo "Unknown option: $1"; exit 1 ;;
         esac
     done
     if [[ -z $todo ]]; then
-        if [[ -z $targets ]]; then
+        if [[ -z $@ ]]; then
             exit 1
         fi
         todo=apply
     fi
-    case $todo in
-        list) $todo $display_all ${targets[@]} ;;
-        *) $todo ${targets[@]} ;;
-    esac
+    $todo $@
 }
 
-main $*
+OPT=`getopt -o aS:slA -l add,save:,status,list,all -- "$@"` || exit 1
+eval set -- "$OPT"
+unset OPT
+main $@
