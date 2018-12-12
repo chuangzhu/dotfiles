@@ -1,11 +1,20 @@
 #!/bin/bash
 
 add() {
-    cp -r $* './BUFFER'
+    # cp -r $* './BUFFER'
+    local i; for i in $@; do
+        i=`readlink -f $i`
+        case $i in
+            $HOME/*) local after="./BUFFER${i#$HOME}" ;;
+            /*) local after="./BUFFER/ROOT$i"
+        esac
+        mkdir -p ${after%/*}
+        cp -r $i $after
+    done
 }
 
 list() {
-    if [[ -z $* ]]; then
+    if [[ $# = 0 ]]; then
         if [[ $display_all ]]; then
             tree -a --noreport topic.*
         else
@@ -27,7 +36,15 @@ _prefix() {
 }
 
 save() {
-    mv "./BUFFER/*" "./BUFFER/.*" `_prefix $1`
+    if [[ $# != 1 ]]; then
+        echo "Save: to many arguments."
+        exit 1
+    fi
+    local saveto=`_prefix $1`
+    if ! [[ -d $saveto ]]; then
+        mkdir $saveto
+    fi
+    find "./BUFFER" -not -type d -exec mv {} $saveto \;
 }
 
 _green() {
@@ -60,6 +77,14 @@ apply() {
     done
 }
 
+status_() {
+    if [[ -d 'BUFFER' ]]; then
+        tree -a --noreport 'BUFFER'
+    else
+        echo 'Nothing in the BUFFER.'
+    fi
+}
+
 
 
 main() {
@@ -69,7 +94,7 @@ main() {
         case $1 in
             -a | --add) todo=add; shift ;;
             -S | --save) todo=save; shift ;;
-            -s | --status) todo=status; shift ;;
+            -s | --status) todo=status_; shift ;;
             -l | --list) todo=list; shift ;;
             -A | --all) display_all='true'; shift ;;
             --) shift; break ;;
@@ -77,7 +102,7 @@ main() {
         esac
     done
     if [[ -z $todo ]]; then
-        if [[ -z $@ ]]; then
+        if [[ $# = 0 ]]; then
             exit 1
         fi
         todo=apply
@@ -85,7 +110,8 @@ main() {
     $todo $@
 }
 
-OPT=`getopt -o aS:slA -l add,save:,status,list,all -- "$@"` || exit 1
-eval set -- "$OPT"
-unset OPT
-main $@
+main `getopt -u \
+    -o aSslA \
+    -l add,save,status,list,all \
+    -- "$@"
+`
