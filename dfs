@@ -8,67 +8,11 @@ import sys
 from os.path import join, isfile, isdir, abspath
 
 
-def option(command, default='__special_none__', mode=str):
-    """Decorator to pass sys.argv to functions,
-    imitates https://github.com/pallets/click
-    """
-    if type(mode) != type:
-        raise ValueError('mode must be type')
-
-    def decorate(fn):
-        def wrapper(*args):
-            opt = default
-            if command in sys.argv:
-                if mode == bool:
-                    opt = True
-                else:
-                    li = []
-                    for i in sys.argv[sys.argv.index(command) + 1:]:
-                        if i.find('-') == 0:
-                            break
-                        li.append(i)
-                    if mode == tuple:
-                        opt = tuple(li)
-                    elif len(li) > 0:
-                        opt = mode(li[0])
-                    elif default == '__special_none__':
-                        print('Missing value for %s.' % command)
-                        sys.exit(-2)
-            elif default == '__special_none__':
-                print("Missing option '%s'" % command)
-                sys.exit(-1)
-            return fn(*args + (opt,))
-        return wrapper
-
-    return decorate
-
-
-help_text = """usage:
-    {fn} <command> <args>
-    or:  make <command> <arg_name>=<args>
-
-commands:
-    list		List exist topics
-    list <topic>	List .files under this topic
-    apply <topic>	Apply a topic of .files to its directory
-    recover <topic>	Restore the situation before applying
-
-    add <file> ...	Stage files in the BUFFER
-    status		Display files you staged
-    commit <topic> 	Store buffered files to a topic, then apply"""
-
-
-def help_():
-    print(help_text.format(fn=sys.argv[0]))
-
-
-@option('list', default=None)
-@option('-a', mode=bool, default=False)
-def list_(topic=None, all_=False):
+def list_(topics=None, all_=False):
     if os.system('which tree > /dev/null') == 0:
-        _list_tree(topic, all_)
+        _list_tree(topics, all_)
     else:
-        if topic is None:
+        if not topics:
             if all_:
                 print(_gettopic())
             else:
@@ -77,16 +21,18 @@ def list_(topic=None, all_=False):
                 a = list(filter(f, _gettopic()))
                 print(a)
         else:
-            print(_getfiles(_prefixtopic(topic)))
+            for t in topics:
+                print(_getfiles(_prefixtopic(t)))
 
 
-def _list_tree(topic, all_):
+def _list_tree(topics, all_):
     PREFIX = 'tree -a --noreport '
-    if topic is None:
+    if not topics:
         suffix = 'topic.*' if all_ else 'topic.[!_]*'
         os.system(PREFIX + suffix)
     else:
-        os.system(PREFIX + _prefixtopic(topic))
+        for t in topics:
+            os.system(PREFIX + _prefixtopic(t))
 
 
 # os.path.join('/opt/someplace', '/home/user/') returns the latter
@@ -136,7 +82,6 @@ def _color(string, color=None, style=None):
                                          string)
 
 
-@option('apply', mode=tuple)
 def apply_(topics):
     """Symlink some topics of dotfiles."""
     for topic in topics:
@@ -163,17 +108,16 @@ def apply_(topics):
             os.symlink(ori, f)
 
 
-@option('recover')
-def recover(topic):
+def recover(topics):
     """Remove the link file, and recover from the .BAK file"""
-    topic = _prefixtopic(topic)
-    for f in _getfiles(topic):
-        f = _there(_rpenv(f))
-        backup = f + '.BAK'
-        if isfile(f):
-            os.remove(f)
-        if isfile(backup):
-            os.rename(backup, f)
+    for topic in topics:
+        for f in _getfiles(_prefixtopic(topic)):
+            f = _there(_rpenv(f))
+            backup = f + '.BAK'
+            if isfile(f):
+                os.remove(f)
+            if isfile(backup):
+                os.rename(backup, f)
 
 
 def _getdir(fullname):
@@ -226,7 +170,6 @@ def _there(here):
     return join(os.environ['HOME'], here)
 
 
-@option('add', mode=tuple)
 def add(files):
     """Add file(s) into buffer."""
     if len(files) == 0:
@@ -252,7 +195,6 @@ def status():
         print('Nothing in the buffer.')
 
 
-@option('save')
 def save(topic):
     """Store the files in the buffer to a topic."""
     if not (isdir('BUFFER') and len(_getfiles('BUFFER')) != 0):
@@ -265,24 +207,48 @@ def save(topic):
         os.removedirs(join('.', 'BUFFER'))
 
 
-@option('commit')
 def commit(topic):
-    # TODO: not avaliable due to decorator
     save(topic)
     apply_(topic)
 
 
 if __name__ == '__main__':
-    # display help if no args provided
-    if len(sys.argv) < 2:
-        help_()
-        sys.exit(1)
+    import argparse
+    parser = argparse.ArgumentParser(description='Manage your dotfiles.')
+    parser.add_argument('target', nargs='*')
+    parser.add_argument('-y', '--apply',
+                        dest='todo', action='store_const',
+                        const=apply_, default=apply_,
+                        help='(default) symlink dotfiles')
+    parser.add_argument('-r', '--recover',
+                        dest='todo', action='store_const',
+                        const=recover,
+                        help='recover the situation before apply')
+    parser.add_argument('-l', '--list',
+                        dest='todo', action='store_const',
+                        const=list_,
+                        help='list files of topics')
+    parser.add_argument('-A', '--all',
+                        dest='all_', action='store_true',
+                        help='display all topics')
+    parser.add_argument('-a', '--add',
+                        dest='todo', action='store_const',
+                        const=add,
+                        help='stage files to the BUFFER')
+    parser.add_argument('-s', '--status',
+                        dest='todo', action='store_const',
+                        const=status,
+                        help='show staged files')
+    parser.add_argument('-S', '--save',
+                        dest='todo', action='store_const',
+                        const=save,
+                        help='save files in the BUFFER to a topic')
+    args = parser.parse_args()
+    if args.todo is list_:
+        list_(args.target, all_=args.all_)
+    elif args.todo is status:
+        status()
+    elif args.todo is save:
+        save(args.target[0])
     else:
-        {'help': help_,
-         'list': list_,
-         'apply': apply_,
-         'recover': recover,
-         'add': add,
-         'status': status,
-         'commit': commit,
-         'save': save}[sys.argv[1]]()
+        args.todo(args.target)
