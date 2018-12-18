@@ -5,8 +5,10 @@
 	co = checkout
 	ci = commit
 	st = status
+        br = branch
 	lg = log --color --graph --pretty=format:'%C(auto)%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
-	lga = lg --all
+        # older versions of git (debian stretch) do not support alias in alias
+	lga = log --color --graph --pretty=format:'%C(auto)%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --all
 	cl = !"exclone () { case $1 in *://* | *@*) git clone $1 ;; */*) git clone https://github.com/$1.git ;; *) git clone git@github.com:genelocated/$1 ;; esac; }; exclone"
 	hide = update-index --assume-unchanged
 	unhide = update-index --no-assume-unchanged
