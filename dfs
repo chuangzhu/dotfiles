@@ -1,4 +1,5 @@
 #!/bin/bash
+alias tree='tree -a --noreport'
 
 add() {
     # cp -r $* './BUFFER'
@@ -16,12 +17,12 @@ add() {
 list() {
     if [[ $# = 0 ]]; then
         if [[ $display_all ]]; then
-            tree -a --noreport topic.*
+            tree topic.*
         else
-            tree -a --noreport topic.[!_]*
+            tree topic.[!_]*
         fi
     else
-        tree -a --noreport `_prefix $*`
+        tree `_prefix $*`
     fi
 }
 
@@ -47,21 +48,55 @@ save() {
     find "./BUFFER" -not -type d -exec mv {} $saveto \;
 }
 
-_green() {
-    echo -e "\033[32m$1\033[0m"
+_c() {
+    printf "\033[3$1m"
+}
+
+_m() {
+    printf "\033[$1m"
+}
+
+# colorful output, usage:
+# puts [--green] [--bold] <string>
+puts() {
+    local RESET='\033[0m'
+    while [[ $@ ]]; do
+        case $1 in
+            "-r" | "--red") _c 1 ;;
+            "-g" | "--green") _c 2 ;;
+            "-y" | "--yellow") _c 3 ;;
+            "--blue") _c 4 ;;
+            "--bold") _m 1 ;;
+            "--dim") _m 2 ;;
+            *) printf -- "$1$RESET ";;
+        esac; shift
+    done; echo
+}
+
+warn-exist() {
+    local warn_name=$1
+    if [[ $# = 2 ]]; then
+        local warn_name=$2
+    fi
+    if [[ -s $1 ]] || [[ -f $1 ]]; then
+        puts -y --bold "WARNING:" "\`$warn_name\` already exist, will save it to \`${warn_name##*/}.BAK\`"
+    fi
 }
 
 apply() {
-    local files=(`find $(_prefix $*) -not -type d`) afters=()
+    local files=(`find $(_prefix $*) -not -type d`)
+    local after="" afters=()
     local f; for f in ${files[@]}; do
         case $f in
             topic.*/ROOT/*)
                 after=${f#topic.*/ROOT}
-                _green $after
+                puts -g $after --dim "-> $f"
+                warn-exist $after
             ;;
             topic.*/*)
-                 after=$HOME/${f#topic.*/}
-                _green '~/'${f#topic.*/}
+                after=$HOME/${f#topic.*/}
+                puts -g '~/'${f#topic.*/} --dim "-> $f"
+                warn-exist $after '~/'${f#topic.*/}
             ;;
         esac
         afters=(${afters[@]} $after)
@@ -79,7 +114,7 @@ apply() {
 
 status_() {
     if [[ -d 'BUFFER' ]]; then
-        tree -a --noreport 'BUFFER'
+        tree 'BUFFER'
     else
         echo 'Nothing in the BUFFER.'
     fi
@@ -90,7 +125,7 @@ status_() {
 main() {
     local todo
     while true; do
-        # _green $1
+        # puts --dim "yellow" $1
         case $1 in
             -a | --add) todo=add; shift ;;
             -S | --save) todo=save; shift ;;
