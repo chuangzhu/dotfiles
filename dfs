@@ -1,5 +1,4 @@
 #!/bin/bash
-alias tree='tree -a --noreport'
 
 add() {
     # cp -r $* './BUFFER'
@@ -14,15 +13,17 @@ add() {
     done
 }
 
+tree='tree -a --noreport'
+
 list() {
-    if [[ $# = 0 ]]; then
-        if [[ $display_all ]]; then
-            tree topic.*
-        else
-            tree topic.[!_]*
-        fi
+    if (( $# )); then
+        $tree `_prefix $*`
     else
-        tree `_prefix $*`
+        if [[ $display_all ]]; then
+            $tree topic.*
+        else
+            $tree topic.[!_]*
+        fi
     fi
 }
 
@@ -42,30 +43,32 @@ save() {
         exit 1
     fi
     local saveto=`_prefix $1`
-    if ! [[ -d $saveto ]]; then
-        mkdir $saveto
-    fi
+    [[ -d $saveto ]] || mkdir $saveto
+    # FIXME: xargs: environment is too large for exec
+    unset LS_COLORS # try to unset some environs
     find "./BUFFER" -not -type d -exec mv {} $saveto \;
+    rm -rf "./BUFFER"
 }
 
 _c() {
-    printf "\033[3$1m"
+    printf "\e[3$1m"
 }
 
 _m() {
-    printf "\033[$1m"
+    printf "\e[$1m"
 }
 
 # colorful output, usage:
 # puts [--green] [--bold] <string>
 puts() {
-    local RESET='\033[0m'
+    local RESET='\e[m'
     while [[ $@ ]]; do
         case $1 in
             "-r" | "--red") _c 1 ;;
             "-g" | "--green") _c 2 ;;
             "-y" | "--yellow") _c 3 ;;
             "--blue") _c 4 ;;
+            "--cyan") _c 6 ;;
             "--bold") _m 1 ;;
             "--dim") _m 2 ;;
             *) printf -- "$1$RESET ";;
@@ -74,12 +77,8 @@ puts() {
 }
 
 warn-exist() {
-    local warn_name=$1
-    if [[ $# = 2 ]]; then
-        local warn_name=$2
-    fi
     if [[ -s $1 ]] || [[ -f $1 ]]; then
-        puts -y --bold "WARNING:" "\`$warn_name\` already exist, will save it to \`${warn_name##*/}.BAK\`"
+        puts -y --bold "WARNING:" "currently existing \`$2\` will be saved to \`${2##*/}.BAK\`"
     fi
 }
 
@@ -90,12 +89,12 @@ apply() {
         case $f in
             topic.*/ROOT/*)
                 after=${f#topic.*/ROOT}
-                puts -g $after --dim "-> $f"
-                warn-exist $after
+                puts -g --bold $after --dim "-> $f"
+                warn-exist $after $after
             ;;
             topic.*/*)
                 after=$HOME/${f#topic.*/}
-                puts -g '~/'${f#topic.*/} --dim "-> $f"
+                puts -g --bold '~/'${f#topic.*/} --dim "-> $f"
                 warn-exist $after '~/'${f#topic.*/}
             ;;
         esac
@@ -114,7 +113,7 @@ apply() {
 
 status_() {
     if [[ -d 'BUFFER' ]]; then
-        tree 'BUFFER'
+        $tree 'BUFFER'
     else
         echo 'Nothing in the BUFFER.'
     fi
@@ -136,10 +135,8 @@ main() {
             *) echo "Unknown option: $1"; exit 1 ;;
         esac
     done
-    if [[ -z $todo ]]; then
-        if [[ $# = 0 ]]; then
-            exit 1
-        fi
+    if [[ ! $todo ]]; then
+        (( $# )) || exit 1
         todo=apply
     fi
     $todo $@
