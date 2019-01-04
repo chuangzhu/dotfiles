@@ -1,15 +1,17 @@
 #!/bin/bash
 
+[[ $BUFFER ]] || BUFFER='./BUFFER'
+
 add() {
-    # cp -r $* './BUFFER'
+    # cp -r $* $BUFFER
     local i; for i in $@; do
         i=`readlink -f $i`
         case $i in
-            $HOME/*) local after="./BUFFER${i#$HOME}" ;;
-            /*) local after="./BUFFER/ROOT$i"
+            $HOME/*) local after="$BUFFER${i#$HOME}" ;;
+            /*) local after="$BUFFER/ROOT$i"
         esac
         mkdir -p ${after%/*}
-        cp -r $i $after
+        cp -r $i $after || exit 2 # file panic
     done
 }
 
@@ -40,14 +42,12 @@ _prefix() {
 save() {
     if [[ $# != 1 ]]; then
         echo "Save: to many arguments."
-        exit 1
+        exit 1 # cli panic
     fi
     local saveto=`_prefix $1`
     [[ -d $saveto ]] || mkdir $saveto
-    # FIXME: xargs: environment is too large for exec
-    unset LS_COLORS # try to unset some environs
-    find "./BUFFER" -not -type d -exec mv {} $saveto \;
-    rm -rf "./BUFFER"
+    mv $BUFFER/* $BUFFER/.* $saveto || exit 2
+    rm -rf "$BUFFER"
 }
 
 _c() {
@@ -82,18 +82,28 @@ warn-exist() {
     fi
 }
 
+_there() {
+    case $1 in
+        topic.*/ROOT/*)
+            echo ${f#topic.*/ROOT}
+        ;;
+        topic.*/*)
+            echo $HOME/${f#topic.*/}
+        ;;
+    esac
+}
+
 apply() {
     local files=(`find $(_prefix $*) -not -type d`)
     local after="" afters=()
     local f; for f in ${files[@]}; do
+        after=`_there $f`
         case $f in
             topic.*/ROOT/*)
-                after=${f#topic.*/ROOT}
                 puts -g --bold $after --dim "-> $f"
                 warn-exist $after $after
             ;;
             topic.*/*)
-                after=$HOME/${f#topic.*/}
                 puts -g --bold '~/'${f#topic.*/} --dim "-> $f"
                 warn-exist $after '~/'${f#topic.*/}
             ;;
@@ -107,16 +117,31 @@ apply() {
     esac
     local i; for i in ${!files[@]}; do
         # absolute path
-        ln -sf `readlink -f ${files[$i]}` ${afters[$i]}
+        ln -sf `readlink -f ${files[$i]}` ${afters[$i]} || exit 2
     done
 }
 
 status_() {
-    if [[ -d 'BUFFER' ]]; then
-        $tree 'BUFFER'
+    # TODO: show applied topics
+    if [[ -d $BUFFER ]]; then
+        $tree $BUFFER
     else
         echo 'Nothing in the BUFFER.'
     fi
+    local topic f g
+    for topic in topic.*; do
+        echo
+        for f in `find $topic -not -type d`; do
+            g=`_there $f`
+            if [[ `readlink $g` = `readlink -f $f` ]]; then
+                puts --cyan --bold $f # applied
+            elif [[ -e $g ]] || [[ -L $g ]]; then
+                puts --red --bold $f # conflict
+            else
+                puts --dim $f # not applied
+            fi
+        done
+    done
 }
 
 
@@ -126,24 +151,25 @@ main() {
     while true; do
         # puts --dim "yellow" $1
         case $1 in
+            -y | --apply) todo=apply; shift ;;
+            -l | --list) todo=list; shift ;;
             -a | --add) todo=add; shift ;;
             -S | --save) todo=save; shift ;;
             -s | --status) todo=status_; shift ;;
-            -l | --list) todo=list; shift ;;
             -A | --all) display_all='true'; shift ;;
             --) shift; break ;;
             *) echo "Unknown option: $1"; exit 1 ;;
         esac
     done
-    if [[ ! $todo ]]; then
-        (( $# )) || exit 1
-        todo=apply
-    fi
+    [[ $todo ]] || {
+        todo=status_
+        (( $# )) && todo=apply
+    }
     $todo $@
 }
 
 main `getopt -u \
-    -o aSslA \
-    -l add,save,status,list,all \
+    -o ylaSsA \
+    -l apply,list,add,save,status,all \
     -- "$@"
 `
