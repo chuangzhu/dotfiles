@@ -16,9 +16,11 @@ alias ':e'=$EDITOR
 alias ':q'=exit
 
 alias gut=git
+alias lz=ls
 alias yd=ydcv
 alias pep8=pycodestyle
 alias ds='du -hd 1'
+alias rf='rm -rf'
 
 function sin() {
     eval $(ssh-agent)

@@ -28,6 +28,7 @@ autocmd BufNewFile,BufRead *.js,*.json set cindent
 autocmd BufNewFile,BufRead *.wxml,*.wxss,*.wxs set shiftwidth=2 softtabstop=2
 autocmd BufNewFile,BufRead *.py set cindent
 autocmd BufNewFile,BufRead *.go set tabstop=4 cindent noexpandtab
+autocmd BufNewFile,BufRead .gitconfig set shiftwidth=8 noexpandtab
 
 " highlight
 autocmd BufNewFile,BufRead *.wxml set syn=html
