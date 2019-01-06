@@ -16,5 +16,7 @@
 	hide = update-index --assume-unchanged
 	unhide = update-index --no-assume-unchanged
 	hided = !git ls-files -v | grep "^h"
+	ignore = !"getignore () { curl -L https://github.com/github/gitignore/blob/master/$1.gitignore?raw=true >> .gitignore; }; getignore"
+	new-root=!"newroot () { local tmp=tmp-$RANDOM; mkdir ../$tmp; cd ../$tmp; git init; git checkout -b $1; echo \"initial commit\" > README; git add --all; git commit -m 'initial commit'; cd -; git remote add $tmp ../$tmp; git fetch $tmp; git checkout $1; git remote rm $tmp; rm -rf ../$tmp; }; newroot"
 [core]
 	editor = vim

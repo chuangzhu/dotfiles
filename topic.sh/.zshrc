@@ -58,11 +58,20 @@ function sin() {
 ghub='https://github.com'
 mhub='git@github.com:genelocated'
 
+function proxy1() {
+    http_proxy='socks5://localhost:10086'
+    [[ $1 ]] && http_proxy=$1
+    export http_proxy
+    export HTTP_PROXY=$http_proxy
+    export https_proxy=$http_proxy
+    export HTTPS_PROXY=$https_proxy
+}
+
 # https://github.com/zsh-users/zsh-syntax-highlighting
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # https://github.com/zsh-users/zsh-autosuggestions
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 
-eval $(thefuck --alias)
+# eval $(thefuck --alias)
 
