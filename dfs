@@ -2,6 +2,33 @@
 
 [[ $BUFFER ]] || BUFFER='./BUFFER'
 
+[[ $tree ]] || {
+    tree='tree -a --noreport'
+    [[ `which tree` ]] || tree='_tree'
+}
+
+_fo() {
+    local f; for f in $2/* $2/.*; do
+        case $f in
+            "$2/*" | "$2/.*" | "$2/." | "$2/..") continue ;;
+        esac
+        local i; for (( i=1; i<$1; i++ )); do
+            printf '    '
+        done
+        printf '+-- '
+        echo ${f##*/}
+        [[ -d $f ]] && _fo $[$1+1] $f
+    done
+}
+
+_tree() {
+    local d; for d in $@; do
+        echo $d
+        _fo 1 $d
+        echo
+    done
+}
+
 add() {
     # cp -r $* $BUFFER
     local i; for i in $@; do
@@ -14,8 +41,6 @@ add() {
         cp -r $i $after || exit 2 # file panic
     done
 }
-
-tree='tree -a --noreport'
 
 list() {
     if (( $# )); then
