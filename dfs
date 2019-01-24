@@ -1,0 +1,216 @@
+#!/bin/bash
+
+[[ $BUFFER ]] || BUFFER='./BUFFER'
+
+# $1: short filename
+# $2: here file
+# $3: there file
+_color() {
+    if [[ `readlink $3` = `readlink -f $2` ]]; then
+        puts -g --bold $1 # applied
+    elif [[ -e $3 ]] || [[ -L $3 ]]; then
+        puts --red --bold $1 # conflict
+    else
+        puts --dim $2 # not applied
+    fi
+}
+
+_plain() {
+    echo $1
+}
+
+
+# file recursively printing
+_fo() {
+    [[ $COLORIZE ]] || COLORIZE=_color
+    local f; for f in $2/* $2/.*; do
+        case $f in
+            "$2/*" | "$2/.*" | "$2/." | "$2/..") continue ;;
+        esac
+        # for i in {1..$1}
+        local i; for (( i=1; i<$1; i++ )); do
+            printf '|   '
+        done
+        printf '+-- '
+        local sf=${f##*/} # short file name
+        if [[ -d $f ]]; then
+            puts --blue --bold $sf
+            _fo $[$1+1] $f
+        else
+            $COLORIZE $sf $f `_there $f`
+        fi
+    done
+}
+
+_tree() {
+    local d; for d in $@; do
+        puts --blue --bold $d
+        _fo 1 $d
+        echo
+    done
+}
+
+add() {
+    # cp -r $* $BUFFER
+    local i; for i in $@; do
+        i=`readlink -f $i`
+        case $i in
+            $HOME/*) local after="$BUFFER${i#$HOME}" ;;
+            /*) local after="$BUFFER/ROOT$i"
+        esac
+        mkdir -p ${after%/*}
+        cp -r $i $after || exit 2 # file panic
+    done
+}
+
+list() {
+    if (( $# )); then
+        _tree `_prefix $*`
+    else
+        if [[ $display_all ]]; then
+            _tree topic.*
+        else
+            _tree topic.[!_]*
+        fi
+    fi
+}
+
+_prefix() {
+    local topic
+    for topic in $*; do
+        case $topic in
+            topic.*) echo $topic ;;
+            *) echo "topic.$topic" ;;
+        esac
+    done
+}
+
+# all files (include dirs) under a dir
+_allunder() {
+    local f; for f in $1/*; do
+        case $f in
+            "$1/." | "$1/..") ;;
+            *) printf "$f " ;;
+        esac
+    done
+}
+
+save() {
+    if [[ $# != 1 ]]; then
+        echo "Save: to many arguments."
+        exit 1 # cli panic
+    fi
+    local saveto=`_prefix $1`
+    [[ -d $saveto ]] || mkdir $saveto
+    mv $(_allunder $BUFFER) $saveto || exit 2
+    rm -rf "$BUFFER"
+}
+
+_c() {
+    printf "\e[3$1m"
+}
+
+_m() {
+    printf "\e[$1m"
+}
+
+# colorful output, usage:
+# puts [--green] [--bold] <string>
+puts() {
+    local RESET='\e[m'
+    while [[ $@ ]]; do
+        case $1 in
+            "-r" | "--red") _c 1 ;;
+            "-g" | "--green") _c 2 ;;
+            "-y" | "--yellow") _c 3 ;;
+            "--blue") _c 4 ;;
+            "--cyan") _c 6 ;;
+            "--bold") _m 1 ;;
+            "--dim") _m 2 ;;
+            *) printf -- "$1$RESET ";;
+        esac; shift
+    done; echo
+}
+
+warn-exist() {
+    if [[ -s $1 ]] || [[ -f $1 ]]; then
+        puts -y --bold "WARNING:" "currently existing \`$2\` will be saved to \`${2##*/}.BAK\`"
+    fi
+}
+
+_there() {
+    case $1 in
+        topic.*/ROOT/*)
+            echo ${f#topic.*/ROOT}
+        ;;
+        topic.*/*)
+            echo $HOME/${f#topic.*/}
+        ;;
+    esac
+}
+
+apply() {
+    local files=(`find $(_prefix $*) -not -type d`)
+    local after="" afters=()
+    local f; for f in ${files[@]}; do
+        after=`_there $f`
+        case $f in
+            topic.*/ROOT/*)
+                puts -g --bold $after --dim "-> $f"
+                warn-exist $after $after
+            ;;
+            topic.*/*)
+                puts -g --bold '~/'${f#topic.*/} --dim "-> $f"
+                warn-exist $after '~/'${f#topic.*/}
+            ;;
+        esac
+        afters=(${afters[@]} $after)
+    done
+    local permit; read -p "Process? [Y/n] " permit
+    case $permit in
+        Y | y | [Yy][Ee][Ss] | '') ;;
+        *) echo "Aborted."; exit 1 ;;
+    esac
+    local i; for i in ${!files[@]}; do
+        # absolute path
+        ln -sf `readlink -f ${files[$i]}` ${afters[$i]} || exit 2
+    done
+}
+
+status_() {
+    if [[ -d $BUFFER ]]; then
+        COLORIZE=_plain _tree $BUFFER
+    else
+        echo 'Nothing in the BUFFER.'
+    fi
+}
+
+
+
+main() {
+    local todo
+    while true; do
+        # puts --dim "yellow" $1
+        case $1 in
+            -y | --apply) todo=apply; shift ;;
+            -l | --list) todo=list; shift ;;
+            -a | --add) todo=add; shift ;;
+            -S | --save) todo=save; shift ;;
+            -s | --status) todo=status_; shift ;;
+            -A | --all) display_all='true'; shift ;;
+            --) shift; break ;;
+            *) echo "Unknown option: $1"; exit 1 ;;
+        esac
+    done
+    [[ $todo ]] || {
+        todo=list
+        (( $# )) && todo=apply
+    }
+    $todo $@
+}
+
+main `getopt -u \
+    -o ylaSsA \
+    -l apply,list,add,save,status,all \
+    -- "$@"
+`
