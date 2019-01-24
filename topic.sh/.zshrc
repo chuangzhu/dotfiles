@@ -40,11 +40,18 @@ command_not_found_handler() {
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
 export EDITOR='/usr/bin/vim'
+
+alias ':e'=$EDITOR
+alias ':q'=exit
+alias ds='du -hd -1'
+alias rf='rm -rf'
+
 alias clip=xclip
 alias yaourt=yay
-
-alias ds='du -hd 1'
+alias yd=ydcv
 alias gut=git
+alias xc='proxychains'
+
 function sin() {
     eval $(ssh-agent)
     local a i
@@ -55,12 +62,12 @@ function sin() {
     done
     ssh-add ${a[@]}
 }
-ghub='https://github.com'
-mhub='git@github.com:genelocated'
+gh='https://github.com'
+mgh='git@github.com:genelocated'
 
 function proxy1() {
-    http_proxy='socks5://localhost:10086'
-    [[ $1 ]] && http_proxy=$1
+    http_proxy='socks5://localhost:1080'
+    [[ $1 ]] && http_proxy="socks5://localhost:$1"
     export http_proxy
     export HTTP_PROXY=$http_proxy
     export https_proxy=$http_proxy
