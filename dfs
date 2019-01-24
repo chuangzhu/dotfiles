@@ -11,7 +11,7 @@ _color() {
     elif [[ -e $3 ]] || [[ -L $3 ]]; then
         puts --red --bold $1 # conflict
     else
-        puts --dim $2 # not applied
+        puts --dim $1 # not applied
     fi
 }
 
@@ -23,10 +23,7 @@ _plain() {
 # file recursively printing
 _fo() {
     [[ $COLORIZE ]] || COLORIZE=_color
-    local f; for f in $2/* $2/.*; do
-        case $f in
-            "$2/*" | "$2/.*" | "$2/." | "$2/..") continue ;;
-        esac
+    local f; for f in `_allunder $2`; do
         # for i in {1..$1}
         local i; for (( i=1; i<$1; i++ )); do
             printf '|   '
@@ -87,9 +84,9 @@ _prefix() {
 
 # all files (include dirs) under a dir
 _allunder() {
-    local f; for f in $1/*; do
+    local f; for f in $1/* $1/.*; do
         case $f in
-            "$1/." | "$1/..") ;;
+            "$1/*" | "$1/.*" | "$1/." | "$1/..") ;;
             *) printf "$f " ;;
         esac
     done
