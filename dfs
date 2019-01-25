@@ -11,7 +11,7 @@ _color() {
     elif [[ -e $3 ]] || [[ -L $3 ]]; then
         puts --red --bold $1 # conflict
     else
-        puts --dim $2 # not applied
+        puts --dim $1 # not applied
     fi
 }
 
@@ -23,19 +23,29 @@ _plain() {
 # file recursively printing
 _fo() {
     [[ $COLORIZE ]] || COLORIZE=_color
-    local f; for f in $2/* $2/.*; do
-        case $f in
-            "$2/*" | "$2/.*" | "$2/." | "$2/..") continue ;;
-        esac
-        # for i in {1..$1}
-        local i; for (( i=1; i<$1; i++ )); do
-            printf '|   '
+    local files=(`_allunder $2`)
+    local i; for i in ${!files[@]}; do
+        local f=${files[i]}
+        local j; for j in $1; do
+            if (( $j )); then
+                printf '│   '
+            else
+                printf '    '
+            fi
         done
-        printf '+-- '
+        if [[ $i = $[${#files[@]}-1] ]]; then
+            printf '└── '
+        else
+            printf '├──'
+        fi
         local sf=${f##*/} # short file name
         if [[ -d $f ]]; then
             puts --blue --bold $sf
-            _fo $[$1+1] $f
+            if [[ $i = $[${#files[@]}-1] ]]; then
+                _fo "$1 0" $f
+            else
+                _fo "$1 1" $f
+            fi
         else
             $COLORIZE $sf $f `_there $f`
         fi
@@ -45,7 +55,7 @@ _fo() {
 _tree() {
     local d; for d in $@; do
         puts --blue --bold $d
-        _fo 1 $d
+        _fo '' $d
         echo
     done
 }
@@ -87,9 +97,9 @@ _prefix() {
 
 # all files (include dirs) under a dir
 _allunder() {
-    local f; for f in $1/*; do
+    local f; for f in $1/* $1/.*; do
         case $f in
-            "$1/." | "$1/..") ;;
+            "$1/*" | "$1/.*" | "$1/." | "$1/..") ;;
             *) printf "$f " ;;
         esac
     done
