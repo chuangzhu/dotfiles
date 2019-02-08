@@ -43,8 +43,10 @@ export EDITOR='/usr/bin/vim'
 
 alias ':e'=$EDITOR
 alias ':q'=exit
-alias ds='du -hd -1'
+alias ds='du -hd 1'
 alias rf='rm -rf'
+alias gd^='git diff HEAD^'
+alias gs='' # I don't need ghostscript
 
 alias clip=xclip
 alias yaourt=yay
@@ -78,7 +80,9 @@ function proxy1() {
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # https://github.com/zsh-users/zsh-autosuggestions
-source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+[[ $TERM = xterm-* ]] && {
+    source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+}
 
 # eval $(thefuck --alias)
 
