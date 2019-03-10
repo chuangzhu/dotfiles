@@ -1,3 +1,5 @@
+export GOPATH="$HOME/go"
+export PATH="$PATH:$HOME/.local/bin:$GOPATH/bin"
 eval $(salias -i)
 
 export ZSH="/data/data/com.termux/files/home/.oh-my-zsh"
