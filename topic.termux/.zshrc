@@ -22,6 +22,8 @@ alias pep8=pycodestyle
 alias ds='du -hd 1'
 alias rf='rm -rf'
 
+alias clip=termux-clipboard-set
+
 function sin() {
     eval $(ssh-agent)
     local a i
@@ -33,6 +35,15 @@ function sin() {
     ssh-add ${a[@]}
 }
 
-ghub='https://github.com'
-mhub='git@github.com:genelocated'
+gh='https://github.com'
+mgh='git@github.com:genelocated'
+
+function proxy1() {
+    http_proxy='http://localhost:1080'
+    [[ $1 ]] && http_proxy=$1
+    export http_proxy
+    export HTTP_PROXY=$http_proxy
+    export https_proxy=$http_proxy
+    export HTTPS_PROXY=$https_proxy
+}
 
