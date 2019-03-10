@@ -8,6 +8,7 @@
 	br = branch
 	a = add
 	aa = add --all
+	cn = clean -fd
 	lg = log --color --graph --pretty=format:'%C(auto)%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
         # older versions of git (debian stretch) do not support alias in alias
 	lga = !git lg --all
