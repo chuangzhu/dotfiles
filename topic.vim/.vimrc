@@ -1,7 +1,6 @@
 
 set encoding=utf-8
 
-" highlight
 syntax on
 " display line numbers
 set nu
@@ -14,6 +13,9 @@ set mouse=a
 " status bar and command complete
 set wildmenu
 set laststatus=2
+
+" hightlight search
+set incsearch
 
 " indent
 set smartindent autoindent

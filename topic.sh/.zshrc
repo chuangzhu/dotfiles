@@ -53,6 +53,7 @@ alias yaourt=yay
 alias yd=ydcv
 alias gut=git
 alias xc='proxychains'
+alias d='sudo docker'
 
 function sin() {
     eval $(ssh-agent)
@@ -68,8 +69,12 @@ gh='https://github.com'
 mgh='git@github.com:genelocated'
 
 function proxy1() {
-    http_proxy='socks5://localhost:1080'
-    [[ $1 ]] && http_proxy="socks5://localhost:$1"
+    http_proxy='http://localhost:10086'
+    [[ $1 ]] && {
+        http_proxy="http://localhost:$1"
+        # $ proxy1 socks5 1080
+        [[ $2 ]] && http_proxy="$1://localhost:$2"
+    }
     export http_proxy
     export HTTP_PROXY=$http_proxy
     export https_proxy=$http_proxy
@@ -85,4 +90,7 @@ source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 }
 
 # eval $(thefuck --alias)
+
+# prefix a command with a ' ', the command won't be written to .zsh_history
+setopt HIST_IGNORE_SPACE
 
