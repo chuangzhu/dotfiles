@@ -8,7 +8,7 @@ eval $(salias -i)
 export ZSH=/usr/share/oh-my-zsh
 
 # https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-ZSH_THEME="robbyrussell"
+ZSH_THEME="spaceship"
 
 # Uncomment the following line to use hyphen-insensitive completion.
 # Case-sensitive completion must be off. _ and - will be interchangeable.
@@ -24,9 +24,14 @@ plugins=(
   go
 )
 
-ZSH_CACHE_DIR=$HOME/.oh-my-zsh-cache
+ZSH_CACHE_DIR=$HOME/.cache/oh-my-zsh
 if [[ ! -d $ZSH_CACHE_DIR ]]; then
-  mkdir $ZSH_CACHE_DIR
+  mkdir -p $ZSH_CACHE_DIR
+fi
+
+ZSH_CUSTOM=$HOME/.config/oh-my-zsh
+if [[ ! -d $ZSH_CUSTOM ]]; then
+  mkdir -p $ZSH_CUSTOM
 fi
 
 source $ZSH/oh-my-zsh.sh
@@ -70,15 +75,14 @@ mgh='git@github.com:genelocated'
 
 function proxy1() {
     http_proxy='http://localhost:10086'
-    [[ $1 ]] && {
-        http_proxy="http://localhost:$1"
-        # $ proxy1 socks5 1080
-        [[ $2 ]] && http_proxy="$1://localhost:$2"
-    }
-    export http_proxy
-    export HTTP_PROXY=$http_proxy
-    export https_proxy=$http_proxy
-    export HTTPS_PROXY=$https_proxy
+    [[ $1 ]] && http_proxy="http://localhost:$1"
+    # $ proxy1 socks5 1080
+    [[ $2 ]] && http_proxy="$1://localhost:$2"
+    [[ $3 ]] && http_proxy="$1://$2:$3"
+    local proxy
+    for proxy in http_proxy HTTP_PROXY https_proxy HTTPS_PROXY; do
+            export $proxy="$http_proxy"
+    done
 }
 
 # https://github.com/zsh-users/zsh-syntax-highlighting
