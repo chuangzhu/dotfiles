@@ -23,6 +23,13 @@ alias yd=ydcv
 alias pep8=pycodestyle
 alias ds='du -hd 1'
 alias rf='rm -rf'
+alias gs='git status'
+alias mv='mv -i'
+alias cp='cp -i'
+
+function wd() {
+    wkdict $1 | less
+}
 
 alias clip=termux-clipboard-set
 
@@ -41,8 +48,12 @@ gh='https://github.com'
 mgh='git@github.com:genelocated'
 
 function proxy1() {
-    http_proxy='http://localhost:1080'
-    [[ $1 ]] && http_proxy=$1
+    http_proxy='http://localhost:10808'
+    [[ $1 ]] && {
+        http_proxy="http://localhost:$1"
+        # $ proxy1 socks5 1080
+        [[ $2 ]] && http_proxy="$1://localhost:$2"
+    }
     export http_proxy
     export HTTP_PROXY=$http_proxy
     export https_proxy=$http_proxy
