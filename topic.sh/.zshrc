@@ -36,10 +36,7 @@ fi
 
 source $ZSH/oh-my-zsh.sh
 
-command_not_found_handler() {
-    /usr/bin/cnf-lookup $1
-    echo "zsh: command not found: $1"
-}
+source /usr/share/doc/pkgfile/command-not-found.zsh
 
 # export MANPATH="/usr/local/man:$MANPATH"
 # Compilation flags
@@ -48,7 +45,7 @@ export EDITOR='/usr/bin/vim'
 
 alias ':e'=$EDITOR
 alias ':q'=exit
-alias ds='du -hd 1'
+alias ds='du -hd 1 | sort --human-numeric-sort --reverse'
 alias rf='rm -rf'
 alias gd^='git diff HEAD^'
 alias gs='' # I don't need ghostscript
@@ -97,4 +94,6 @@ source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 
 # prefix a command with a ' ', the command won't be written to .zsh_history
 setopt HIST_IGNORE_SPACE
+
+export NO_PROXY="localhost,127.0.0.0"
 
