@@ -63,3 +63,6 @@ function proxy1() {
     done
 }
 
+export CFLAGS="-I/data/data/com.termux/files/usr/include/"
+export LDFLAGS="-L/system/lib/"
+
