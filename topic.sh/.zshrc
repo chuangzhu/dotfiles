@@ -82,6 +82,8 @@ function proxy1() {
     done
 }
 
+alias proxy0='unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY'
+
 # https://github.com/zsh-users/zsh-syntax-highlighting
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 

@@ -18,6 +18,7 @@ set laststatus=2
 set incsearch
 
 " indent
+filetype indent plugin on
 set smartindent autoindent
 set shiftwidth=4
 set softtabstop=4
@@ -28,7 +29,7 @@ autocmd BufNewFile,BufRead Makefile,makefile set shiftwidth=8 softtabstop=8 noex
 autocmd BufNewFile,BufRead *.html,*.scss,*.css,*.js,*.json set shiftwidth=2 softtabstop=2
 autocmd BufNewFile,BufRead *.js,*.json set cindent
 autocmd BufNewFile,BufRead *.wxml,*.wxss,*.wxs set shiftwidth=2 softtabstop=2
-autocmd BufNewFile,BufRead *.py set cindent
+autocmd BufNewFile,BufRead *.py set tabstop=8 expandtab shiftwidth=4 softtabstop=4
 autocmd BufNewFile,BufRead *.go set tabstop=4 cindent noexpandtab
 autocmd BufNewFile,BufRead .gitconfig set shiftwidth=8 noexpandtab
 
