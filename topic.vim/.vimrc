@@ -38,3 +38,6 @@ autocmd BufNewFile,BufRead *.wxml set syn=html
 autocmd BufNewFile,BufRead *.wxss set syn=css
 autocmd BufNewFile,BufRead *.wxs set syn=javascript
 
+filetype plugin on
+set omnifunc=syntaxcomplete#Complete
+
