@@ -2,7 +2,7 @@ source $HOME/.profile
 export SHELL=zsh
 
 # https://github.com/ktr0731/salias
-eval $(salias -i)
+which salias > /dev/null && eval $(salias -i)
 
 # Path to your oh-my-zsh installation.
 export ZSH=/usr/share/oh-my-zsh
@@ -21,7 +21,8 @@ plugins=(
   git
   archlinux
   python
-  go
+  golang
+  yarn
 )
 
 ZSH_CACHE_DIR=$HOME/.cache/oh-my-zsh
@@ -45,7 +46,7 @@ export EDITOR='/usr/bin/vim'
 
 alias ':e'=$EDITOR
 alias ':q'=exit
-alias ds='du -hd 1 | sort --human-numeric-sort --reverse'
+du0() { du -hd 1 $1 | sort --human-numeric-sort --reverse }
 alias rf='rm -rf'
 alias gd^='git diff HEAD^'
 alias gs='' # I don't need ghostscript
@@ -98,4 +99,13 @@ source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 setopt HIST_IGNORE_SPACE
 
 export NO_PROXY="localhost,127.0.0.0"
+
+export BAT_PAGER="less -R"
+
+[[ -f '/usr/share/nnn/quitcd/quitcd.bash_zsh' ]] && . '/usr/share/nnn/quitcd/quitcd.bash_zsh'
+_fff() {
+    fff "$@"
+    cd "$(cat "${XDG_CACHE_HOME:=${HOME}/.cache}/fff/.fff_d")"
+}
+alias fff=_fff
 

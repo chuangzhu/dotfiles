@@ -38,6 +38,12 @@ autocmd BufNewFile,BufRead *.wxml set syn=html
 autocmd BufNewFile,BufRead *.wxss set syn=css
 autocmd BufNewFile,BufRead *.wxs set syn=javascript
 
+" completion
+
+au FileType html setl ofu=htmlcomplete#CompleteTags
+
 filetype plugin on
 set omnifunc=syntaxcomplete#Complete
+
+inoremap <C-@> <C-Space>
 
