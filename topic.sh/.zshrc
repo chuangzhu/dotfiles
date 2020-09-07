@@ -58,16 +58,6 @@ alias gut=git
 alias xc='proxychains'
 alias d='sudo docker'
 
-function sin() {
-    eval $(ssh-agent)
-    local a i
-    for i in ~/.ssh/*; do
-        if [ -f $i.pub ]; then
-            a=(${a[@]} $i)
-        fi
-    done
-    ssh-add ${a[@]}
-}
 gh='https://github.com'
 mgh='git@github.com:genelocated'
 
