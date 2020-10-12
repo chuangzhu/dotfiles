@@ -1,6 +1,5 @@
 export GOPATH="$HOME/go"
 export PATH="$PATH:$HOME/.local/bin:$GOPATH/bin"
-eval $(salias -i)
 
 export TERM=xterm-256color
 
@@ -9,7 +8,7 @@ ZSH_THEME="robbyrussell"
 plugins=(
   git
   debian
-  go
+  golang
   pip
 )
 source $ZSH/oh-my-zsh.sh
@@ -36,17 +35,6 @@ function wd() {
 }
 
 alias clip=termux-clipboard-set
-
-function sin() {
-    eval $(ssh-agent)
-    local a i
-    for i in ~/.ssh/*; do
-        if [ -f $i.pub ]; then
-            a=(${a[@]} $i)
-        fi
-    done
-    ssh-add ${a[@]}
-}
 
 gh='https://github.com'
 mgh='git@github.com:genelocated'
