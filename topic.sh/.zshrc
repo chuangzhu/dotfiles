@@ -22,7 +22,7 @@ plugins=(
   archlinux
   python
   golang
-  yarn
+  yarn-autocompletions
 )
 
 ZSH_CACHE_DIR=$HOME/.cache/oh-my-zsh
@@ -50,6 +50,14 @@ du0() { du -hd 1 $1 | sort --human-numeric-sort --reverse }
 alias rf='rm -rf'
 alias gd^='git diff HEAD^'
 alias gs='' # I don't need ghostscript
+alias ip='ip --color=auto'
+
+export    LESS_TERMCAP_md=$'\e[01;31m'
+export    LESS_TERMCAP_me=$'\e[0m'
+export    LESS_TERMCAP_us=$'\e[01;32m'
+export    LESS_TERMCAP_ue=$'\e[0m'
+export    LESS_TERMCAP_so=$'\e[45;93m'
+export    LESS_TERMCAP_se=$'\e[0m'
 
 alias clip=xclip
 alias yaourt=yay
@@ -75,6 +83,13 @@ function proxy1() {
 
 alias proxy0='unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY'
 
+function swap() {
+    local tmpfile=.tmp-$$
+    mv "$1" $tmpfile
+    mv "$2" "$1"
+    mv $tmpfile "$2"
+}
+
 # https://github.com/zsh-users/zsh-syntax-highlighting
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
@@ -84,6 +99,7 @@ source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 }
 
 # eval $(thefuck --alias)
+# eval "$(gh completion -s zsh)"
 
 # prefix a command with a ' ', the command won't be written to .zsh_history
 setopt HIST_IGNORE_SPACE

@@ -17,6 +17,10 @@ set laststatus=2
 " hightlight search
 set incsearch
 
+" lf
+set fileformat=unix
+set fileformats=unix,dos
+
 " indent
 filetype indent plugin on
 set smartindent autoindent
