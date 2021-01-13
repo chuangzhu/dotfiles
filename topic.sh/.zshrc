@@ -23,6 +23,7 @@ plugins=(
   python
   golang
   yarn-autocompletions
+  autoswitch_virtualenv
 )
 
 ZSH_CACHE_DIR=$HOME/.cache/oh-my-zsh
@@ -52,14 +53,15 @@ alias gd^='git diff HEAD^'
 alias gs='' # I don't need ghostscript
 alias ip='ip --color=auto'
 
-export    LESS_TERMCAP_md=$'\e[01;31m'
-export    LESS_TERMCAP_me=$'\e[0m'
-export    LESS_TERMCAP_us=$'\e[01;32m'
-export    LESS_TERMCAP_ue=$'\e[0m'
-export    LESS_TERMCAP_so=$'\e[45;93m'
-export    LESS_TERMCAP_se=$'\e[0m'
+export LESS_TERMCAP_md=$'\e[01;31m'
+export LESS_TERMCAP_me=$'\e[0m'
+export LESS_TERMCAP_us=$'\e[01;32m'
+export LESS_TERMCAP_ue=$'\e[0m'
+export LESS_TERMCAP_so=$'\e[45;93m'
+export LESS_TERMCAP_se=$'\e[0m'
 
 alias clip=xclip
+alias open=xdg-open
 alias yaourt=yay
 alias yd=ydcv
 alias gut=git
@@ -114,4 +116,9 @@ _fff() {
     cd "$(cat "${XDG_CACHE_HOME:=${HOME}/.cache}/fff/.fff_d")"
 }
 alias fff=_fff
+alias nnn=n
+
+light_theme() {
+    env XDG_CONFIG_HOME="$HOME/.config-light" GTK2_RC_FILES="$HOME/.config-light/gtkrc-2.0" GTK_RC_FILES="$HOME/.config-light/gtkrc" $1
+}
 
